@@ -1,0 +1,38 @@
+/** Offline 5-letter word list — used for both secret words and valid guesses. */
+export const WORDS = [
+  'crane', 'slate', 'trace', 'about', 'other', 'which', 'their', 'there', 'first', 'would',
+  'these', 'click', 'price', 'every', 'great', 'world', 'house', 'water', 'light', 'night',
+  'right', 'might', 'sight', 'tight', 'fight', 'place', 'where', 'after', 'thing', 'think',
+  'three', 'small', 'large', 'sound', 'while', 'found', 'still', 'human', 'point', 'stand',
+  'plant', 'plane', 'plate', 'space', 'spice', 'spine', 'shine', 'stone', 'store', 'storm',
+  'sweet', 'sweep', 'sheep', 'sleep', 'steel', 'steam', 'dream', 'cream', 'bread', 'break',
+  'beach', 'reach', 'teach', 'peach', 'chair', 'chain', 'charm', 'cheap', 'cheer', 'chess',
+  'chest', 'clean', 'clear', 'climb', 'close', 'cloud', 'clock', 'crown', 'crowd', 'crash',
+  'dance', 'drink', 'drive', 'eagle', 'early', 'earth', 'enjoy', 'enter', 'equal', 'exact',
+  'faith', 'fancy', 'feast', 'fence', 'fever', 'field', 'fifth', 'final', 'flame', 'flash',
+  'fleet', 'float', 'floor', 'flour', 'focus', 'force', 'frame', 'fresh', 'front', 'frost',
+  'fruit', 'glass', 'globe', 'glory', 'grace', 'grade', 'grain', 'grand', 'grape', 'grass',
+  'green', 'greet', 'group', 'guard', 'guess', 'guest', 'guide', 'happy', 'heart', 'heavy',
+  'honey', 'horse', 'hotel', 'image', 'index', 'inner', 'input', 'issue', 'joint', 'judge',
+  'juice', 'knife', 'knock', 'known', 'label', 'labor', 'layer', 'learn', 'least', 'leave',
+  'lemon', 'level', 'lever', 'lucky', 'lunch', 'magic', 'major', 'maker', 'march', 'match',
+  'metal', 'meter', 'money', 'month', 'moral', 'motor', 'mouth', 'movie', 'music', 'noble',
+  'noise', 'north', 'novel', 'nurse', 'ocean', 'offer', 'olive', 'onion', 'order', 'organ',
+  'owner', 'paint', 'panel', 'paper', 'party', 'peace', 'phone', 'photo', 'piano', 'piece',
+  'pilot', 'pizza', 'plain', 'power', 'pride', 'prime', 'prize', 'proof', 'proud', 'queen',
+  'quick', 'quiet', 'quite', 'radio', 'raise', 'range', 'rapid', 'ratio', 'reply', 'rifle',
+  'river', 'roast', 'robot', 'round', 'route', 'royal', 'salad', 'sauce', 'scale', 'scene',
+  'scope', 'score', 'sense', 'serve', 'seven', 'shade', 'shake', 'shall', 'shape', 'share',
+  'sharp', 'shelf', 'shell', 'shift', 'shirt', 'shock', 'shoot', 'shore', 'short', 'shout',
+  'siren', 'skill', 'skirt', 'slice', 'slide', 'smart', 'smile', 'smoke', 'snake', 'solid',
+  'solve', 'spare', 'spark', 'speak', 'speed', 'spell', 'spend', 'split', 'sport', 'spray',
+  'staff', 'stage', 'stair', 'stamp', 'start', 'state', 'steak', 'stick', 'stock', 'stuff',
+  'sugar', 'super', 'table', 'taste', 'teeth', 'thank', 'theme', 'tiger', 'title', 'toast',
+  'tooth', 'topic', 'total', 'touch', 'tower', 'track', 'trade', 'trail', 'train', 'treat',
+  'trend', 'trial', 'tribe', 'trick', 'truck', 'truly', 'trust', 'truth', 'twist', 'uncle',
+  'under', 'union', 'unit', 'upper', 'urban', 'value', 'video', 'virus', 'voice', 'wagon',
+  'waste', 'watch', 'wheel', 'white', 'whole', 'woman', 'world', 'worry', 'worth', 'wound',
+  'wrist', 'write', 'wrong', 'young', 'youth', 'zebra'
+].filter((w) => w.length === 5);
+
+export const WORD_SET = new Set(WORDS);
