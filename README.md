@@ -128,4 +128,3 @@ After doing this, the game automatically appears on the Home page and Library, g
 `npm run build && npm run preview`, load once, then set DevTools → Network → **Offline**
 and reload — the shell and any loaded game keep working. The "Install app" prompt appears
 in supported browsers.
-# minigames
