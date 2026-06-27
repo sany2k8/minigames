@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import {
   FLOW_COLORS,
   type FlowPuzzle,
@@ -22,6 +24,7 @@ function FlowFreeSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: S
   const pathsRef = useRef(paths);
   pathsRef.current = paths;
   const active = useRef<number | null>(null);
+  const undoer = useUndo<Record<number, number[]>>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -57,6 +60,8 @@ function FlowFreeSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: S
   const beginAt = (cell: number) => {
     const color = colorOfCell(cell);
     if (color < 0) return;
+    // Snapshot before a new stroke so Undo reverts the whole connection.
+    undoer.record({ ...pathsRef.current });
     const next = { ...pathsRef.current };
     if (dotMap.get(cell) === color) next[color] = [cell];
     else {
@@ -107,6 +112,15 @@ function FlowFreeSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: S
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paths, isBot, paused, difficulty]);
 
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      active.current = null;
+      commit(prev);
+    }
+  };
+
   const cellColor = (cell: number) => colorOfCell(cell, paths);
   const size = `min(82cqmin, 84cqh, 460px)`;
   return (
@@ -141,6 +155,11 @@ function FlowFreeSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: S
           );
         })}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Drag between matching dots to connect every color and fill the grid</div>}
     </div>
   );

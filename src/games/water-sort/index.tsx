@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import {
   TUBE_COLORS,
   bestMove,
@@ -21,6 +23,7 @@ function WaterSortSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: 
   const [tubes, setTubes] = useState<Tube[]>(() => generate(rng, cfg));
   const [sel, setSel] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
+  const undoer = useUndo<{ tubes: Tube[]; moves: number }>();
   const start = useRef(Date.now());
   const finished = useRef(false);
 
@@ -64,10 +67,21 @@ function WaterSortSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: 
       return;
     }
     if (canPour(tubes, sel, i, cfg.height)) {
+      undoer.record({ tubes, moves });
       setTubes((cur) => pour(cur, sel, i, cfg.height));
       setMoves((x) => x + 1);
     }
     setSel(null);
+  };
+
+  const undo = () => {
+    if (isBot || paused || finished.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setTubes(prev.tubes);
+      setMoves(prev.moves);
+      setSel(null);
+    }
   };
 
   const tubeDone = (t: Tube) => t.length === cfg.height && t.every((c) => c === t[0]);
@@ -90,6 +104,11 @@ function WaterSortSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: 
           </div>
         ))}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Tap a tube, then tap where to pour</div>}
     </div>
   );

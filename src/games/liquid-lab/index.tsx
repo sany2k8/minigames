@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import {
   TUBE_COLORS,
   bestMove,
@@ -21,6 +23,7 @@ function LiquidLabSolo({ seed, isBot, difficulty, paused, onProgress, onScore, o
   const [tubes, setTubes] = useState<Tube[]>(() => generate(rng, cfg));
   const [sel, setSel] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
+  const undoer = useUndo<{ tubes: Tube[]; moves: number }>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -61,10 +64,21 @@ function LiquidLabSolo({ seed, isBot, difficulty, paused, onProgress, onScore, o
       return;
     }
     if (canPour(tubes, sel, i, cfg.height)) {
+      undoer.record({ tubes, moves });
       setTubes((cur) => pour(cur, sel, i, cfg.height));
       setMoves((x) => x + 1);
     }
     setSel(null);
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setTubes(prev.tubes);
+      setMoves(prev.moves);
+      setSel(null);
+    }
   };
 
   const segH = 26;
@@ -91,6 +105,11 @@ function LiquidLabSolo({ seed, isBot, difficulty, paused, onProgress, onScore, o
           </div>
         ))}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Pour to sort each chemical into its own tube ⚗️</div>}
     </div>
   );

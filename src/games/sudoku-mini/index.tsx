@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import { type Grid, N, conflicts, difficultyGivens, generate, isComplete } from './logic';
 import '../games.css';
 
@@ -9,6 +11,7 @@ function SudokuMiniSolo({ seed, isBot, difficulty, paused, onScore, onDone }: So
   const puz = useRef(generate(rng, difficultyGivens(difficulty))).current;
   const [grid, setGrid] = useState<Grid>(() => puz.puzzle.slice());
   const [sel, setSel] = useState<number | null>(null);
+  const undoer = useUndo<Grid>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -36,11 +39,18 @@ function SudokuMiniSolo({ seed, isBot, difficulty, paused, onScore, onDone }: So
 
   const setCell = (v: number) => {
     if (isBot || paused || done.current || sel === null || puz.given[sel]) return;
+    undoer.record(grid.slice());
     setGrid((g) => {
       const ng = g.slice();
       ng[sel] = ng[sel] === v ? 0 : v;
       return ng;
     });
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) setGrid(prev);
   };
 
   // bot fills correct cells over time
@@ -91,13 +101,18 @@ function SudokuMiniSolo({ seed, isBot, difficulty, paused, onScore, onDone }: So
         })}
       </div>
       {!isBot ? (
-        <div className="sd-pad">
-          {[1, 2, 3, 4, 5, 6].map((v) => (
-            <button key={v} className="sd-key" onClick={() => setCell(v)}>
-              {v}
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="sd-pad">
+            {[1, 2, 3, 4, 5, 6].map((v) => (
+              <button key={v} className="sd-key" onClick={() => setCell(v)}>
+                {v}
+              </button>
+            ))}
+          </div>
+          <div className="board-actions">
+            <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+          </div>
+        </>
       ) : (
         <div className="hint">🤖 solving the grid…</div>
       )}

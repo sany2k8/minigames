@@ -91,16 +91,20 @@ favorites, and recents all work automatically.
   `!paused && !done`.
 - **Persistence** (favorites, high scores, recents, settings, player names) is the single
   zustand store in `src/store/store.ts` (persisted to `localStorage` under `no-wifi-games`).
-- **Styling is a hybrid** (since the Neon Arcade redesign):
-  - **Dashboard/chrome** (shell, pages, GameTile, ui.tsx) use **Tailwind CSS v4** with the
-    `@theme`/`@layer` setup at the top of `src/theme/global.css`. Tailwind compiles via
-    **`postcss.config.mjs`** (`@tailwindcss/postcss`) — if utilities render unstyled, that
-    file is missing. Fonts (Inter/Montserrat/JetBrains Mono) + Material Symbols load from
-    `index.html`.
-  - **In-game boards** (the 36 games in `src/games/*` + `src/games/games.css`) still use the
-    **legacy plain-CSS design tokens** (`--surface`, `--text-dim`, `--accent-2`, `.btn`, …)
-    defined in the compatibility block at the **bottom** of `global.css`, remapped onto the
-    neon palette. Do NOT delete those tokens or `games.css` breaks all boards.
+- **Styling is a hybrid** (light dashboard + dark play screen, since the "Pulse" redesign):
+  - **Dashboard/chrome** (shell, pages, GameTile, SettingsDrawer, GamePage config) use the
+    **Pulse light theme** — Tailwind CSS v4 tokens at the top of `src/theme/global.css`
+    (`app-bg`, `card`, `ink`/`ink-soft`/`ink-faint`, `line`/`line-soft`, `coral`/`coral-2`/
+    `coral-soft`/`coral-ink`, `gold`) with helpers `.card`/`.btn-coral`/`.btn-soft`/`.chip`.
+    Fonts: **Space Grotesk** (sans/display) + **Space Mono** (mode badges) + Material Symbols,
+    loaded in `index.html`. Tailwind compiles via **`postcss.config.mjs`** (`@tailwindcss/postcss`).
+  - **The play screen stays dark/immersive**: `GameHost`, `ui.tsx` (`TopBar`/`ResultModal`/
+    `ProgressBar`), and the in-game boards keep the old **dark Neon Arcade** tokens
+    (`dark-bg`, `glass-panel`, `btn-primary`, `neon-*` in `@theme`/`@layer`, plus the legacy
+    `:root` block — `--surface`, `--text-dim`, `--accent-2`, `.btn`, … — at the bottom of
+    `global.css` that `src/games/*` + `src/games/games.css` depend on). Do NOT delete those
+    dark tokens or the boards break. `GamePage` shows a light config screen, then renders
+    `GameHost` inside a `bg-dark-bg` wrapper when playing.
   - The framer-motion page wrapper `.route` must stay `display:flex; flex-direction:column`
     so full-screen `GameHost` panes (`.split{flex:1}` + container queries) fill height.
 - **Reuse:** `water-sort/logic.ts` is the shared tube-sort engine — `nuts-and-bolts` imports

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import {
   type Card,
   type GolfState,
@@ -31,6 +33,7 @@ const CardView = ({ card, ghost }: { card?: Card; ghost?: boolean }) =>
 function GolfSolitaireSolo({ seed, isBot, difficulty, paused, onScore, onDone }: SoloGameProps) {
   const rng = useRef(makeRng(seed)).current;
   const [st, setSt] = useState<GolfState>(() => deal(rng));
+  const undoer = useUndo<GolfState>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -48,11 +51,20 @@ function GolfSolitaireSolo({ seed, isBot, difficulty, paused, onScore, onDone }:
 
   const tapCol = (i: number) => {
     if (isBot || paused || done.current) return;
+    if (!playableColumns(st).includes(i)) return;
+    undoer.record(st);
     setSt((s) => playColumn(s, i));
   };
   const tapStock = () => {
-    if (isBot || paused || done.current) return;
+    if (isBot || paused || done.current || st.stock.length === 0) return;
+    undoer.record(st);
     setSt((s) => draw(s));
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) setSt(prev);
   };
 
   // greedy bot
@@ -108,6 +120,11 @@ function GolfSolitaireSolo({ seed, isBot, difficulty, paused, onScore, onDone }:
           <span className="gs-cap">Waste</span>
         </div>
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && (
         <div className="hint">
           Move a card 1 higher/lower than the waste card. Tap Draw when stuck.

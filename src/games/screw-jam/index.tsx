@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import {
   BOX_CAP,
   type Box,
@@ -20,6 +22,7 @@ function ScrewJamSolo({ seed, isBot, difficulty, paused, onProgress, onScore, on
   const [taken, setTaken] = useState<Set<number>>(new Set());
   const [boxes, setBoxes] = useState<Box[]>(emptyBoxes);
   const [score, setScore] = useState(0);
+  const undoer = useUndo<{ taken: Set<number>; boxes: Box[]; score: number }>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -43,6 +46,7 @@ function ScrewJamSolo({ seed, isBot, difficulty, paused, onProgress, onScore, on
 
   const pick = (i: number) => {
     if (paused || done.current || taken.has(i) || !canPlace(boxes, screws[i])) return;
+    if (!isBot) undoer.record({ taken: new Set(taken), boxes, score });
     const res = placeScrew(boxes, screws[i]);
     setBoxes(res.boxes);
     setTaken((s) => new Set(s).add(i));
@@ -55,6 +59,16 @@ function ScrewJamSolo({ seed, isBot, difficulty, paused, onProgress, onScore, on
   };
   const pickRef = useRef(pick);
   pickRef.current = pick;
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setTaken(prev.taken);
+      setBoxes(prev.boxes);
+      setScore(prev.score);
+    }
+  };
 
   useEffect(() => {
     if (!isBot || paused || done.current) return;
@@ -105,6 +119,11 @@ function ScrewJamSolo({ seed, isBot, difficulty, paused, onProgress, onScore, on
           </div>
         ))}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Unscrew pins into the boxes — fill a box of {BOX_CAP} to clear it</div>}
     </div>
   );

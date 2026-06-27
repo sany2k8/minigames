@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import { SIZE, type Dir, type Grid, botMove, canMove, emptyGrid, move, spawn, tileColor } from './logic';
 import '../games.css';
 
@@ -8,6 +10,7 @@ function Merge2048Solo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
   const rng = useRef(makeRng(seed)).current;
   const [grid, setGrid] = useState<Grid>(() => spawn(spawn(emptyGrid(), rng), rng));
   const [score, setScore] = useState(0);
+  const undoer = useUndo<{ grid: Grid; score: number }>();
   const start = useRef(Date.now());
   const done = useRef(false);
   const swipe = useRef<{ x: number; y: number } | null>(null);
@@ -20,6 +23,7 @@ function Merge2048Solo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
 
   const doMove = (dir: Dir) => {
     if (paused || done.current) return;
+    if (!isBot && move(grid, dir).moved) undoer.record({ grid, score });
     setGrid((cur) => {
       const res = move(cur, dir);
       if (!res.moved) return cur;
@@ -35,6 +39,16 @@ function Merge2048Solo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
   };
   const doMoveRef = useRef(doMove);
   doMoveRef.current = doMove;
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setGrid(prev.grid);
+      setScore(prev.score);
+      onScore?.(prev.score);
+    }
+  };
 
   // keyboard (human only)
   useEffect(() => {
@@ -111,10 +125,13 @@ function Merge2048Solo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
       </div>
       {!isBot && (
         <>
+          <div className="board-actions">
+            <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+            <button className="btn btn-ghost" onClick={() => finish(score)}>
+              End round
+            </button>
+          </div>
           <div className="hint">Swipe or use arrow keys to merge tiles</div>
-          <button className="btn btn-ghost" onClick={() => finish(score)}>
-            End round
-          </button>
         </>
       )}
     </div>

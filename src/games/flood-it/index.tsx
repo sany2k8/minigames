@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import { FLOOD_COLORS, type FloodConfig, botColor, flood, floodConfig, generate, isSolved, progress, region } from './logic';
 import '../games.css';
 
@@ -9,6 +11,7 @@ function FloodItSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: So
   const rng = useRef(makeRng(seed)).current;
   const [grid, setGrid] = useState<number[]>(() => generate(rng, cfg));
   const [moves, setMoves] = useState(0);
+  const undoer = useUndo<{ grid: number[]; moves: number }>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -31,11 +34,21 @@ function FloodItSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: So
 
   const pick = (color: number) => {
     if (isBot || paused || done.current || color === grid[0]) return;
+    undoer.record({ grid, moves });
     const ng = flood(grid, cfg.n, color);
     const m = moves + 1;
     setGrid(ng);
     setMoves(m);
     if (!isSolved(ng) && m >= cfg.moves) setTimeout(() => finish(ng, m), 200);
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setGrid(prev.grid);
+      setMoves(prev.moves);
+    }
   };
 
   useEffect(() => {
@@ -85,6 +98,11 @@ function FloodItSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: So
           />
         ))}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Pick a color to flood from the top-left. Fill the board!</div>}
     </div>
   );

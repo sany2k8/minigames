@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import {
   type Cell,
   type PipeBoard,
@@ -38,6 +40,7 @@ function PipeManiaSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: 
     ...gen.board,
     cells: gen.board.cells.map((c) => ({ ...c }))
   }));
+  const undoer = useUndo<PipeBoard>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -52,10 +55,17 @@ function PipeManiaSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: 
 
   const rotate = (i: number) => {
     if (isBot || paused || done.current || board.cells[i].fixed) return;
+    undoer.record(board);
     setBoard((b) => {
       const cells = b.cells.map((c, j) => (j === i ? { ...c, rot: (c.rot + 1) % 4 } : c));
       return { ...b, cells };
     });
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) setBoard(prev);
   };
 
   useEffect(() => {
@@ -92,6 +102,11 @@ function PipeManiaSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: 
           </div>
         ))}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Tap pipes to rotate. Connect 💧 to 🌸!</div>}
     </div>
   );

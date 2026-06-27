@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import { N, type Sol, colClue, isSolved, progress, rowClue, solutionFor } from './logic';
 import '../games.css';
 
@@ -8,6 +10,7 @@ function NonogramSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: S
   const sol = useRef<Sol>(solutionFor(seed)).current;
   const [state, setState] = useState<number[]>(() => Array(N * N).fill(0));
   const [mark, setMark] = useState(false);
+  const undoer = useUndo<number[]>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -22,12 +25,19 @@ function NonogramSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: S
 
   const tap = (i: number) => {
     if (isBot || paused || done.current) return;
+    undoer.record(state.slice());
     setState((s) => {
       const ns = s.slice();
       if (mark) ns[i] = ns[i] === 2 ? 0 : 2;
       else ns[i] = ns[i] === 1 ? 0 : 1;
       return ns;
     });
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) setState(prev);
   };
 
   useEffect(() => {
@@ -87,9 +97,12 @@ function NonogramSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: S
         </div>
       </div>
       {!isBot && (
-        <button className={`btn ${mark ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setMark((m) => !m)}>
-          {mark ? '✕ Mark mode' : '⬛ Fill mode'}
-        </button>
+        <div className="board-actions">
+          <button className={`btn ${mark ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setMark((m) => !m)}>
+            {mark ? '✕ Mark mode' : '⬛ Fill mode'}
+          </button>
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
       )}
     </div>
   );

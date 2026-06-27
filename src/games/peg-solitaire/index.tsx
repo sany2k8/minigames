@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import { type Board, SIZE, applyMove, initBoard, legalMoves, movesFrom, pegsLeft, scoreOf } from './logic';
 import '../games.css';
 
@@ -8,6 +10,7 @@ function PegSolitaireSolo({ seed, isBot, difficulty, paused, onScore, onDone }: 
   const botRng = useRef(makeRng(seed ^ 0x1234)).current;
   const [board, setBoard] = useState<Board>(initBoard);
   const [sel, setSel] = useState<number | null>(null);
+  const undoer = useUndo<Board>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -35,7 +38,17 @@ function PegSolitaireSolo({ seed, isBot, difficulty, paused, onScore, onDone }: 
     }
     if (sel != null && targetTo.has(i)) {
       const mv = targets.find((m) => m.to === i)!;
+      undoer.record(board);
       setBoard((b) => applyMove(b, mv));
+      setSel(null);
+    }
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setBoard(prev);
       setSel(null);
     }
   };
@@ -78,6 +91,11 @@ function PegSolitaireSolo({ seed, isBot, difficulty, paused, onScore, onDone }: 
           );
         })}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Tap a peg, then a highlighted hole to jump. Leave one peg!</div>}
     </div>
   );

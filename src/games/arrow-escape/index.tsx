@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import {
   ARROWS,
   EMPTY,
@@ -20,6 +22,7 @@ function ArrowEscapeSolo({ seed, player, isBot, difficulty, paused, onProgress, 
   const initial = useRef<Board>(generate(rng, cfg)).current;
   const total = useRef(tilesLeft(initial)).current;
   const [board, setBoard] = useState<Board>(initial);
+  const undoer = useUndo<Board>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -56,7 +59,16 @@ function ArrowEscapeSolo({ seed, player, isBot, difficulty, paused, onProgress, 
 
   const tap = (idx: number) => {
     if (isBot || paused || done.current) return;
-    if (escapable(board, idx)) remove(idx);
+    if (escapable(board, idx)) {
+      undoer.record(board);
+      remove(idx);
+    }
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) setBoard(prev);
   };
 
   const size = `min(86cqmin, 82cqh, 540px)`;
@@ -88,6 +100,11 @@ function ArrowEscapeSolo({ seed, player, isBot, difficulty, paused, onProgress, 
           );
         })}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Tap a glowing arrow to escape it — its path to the edge must be clear</div>}
       {isBot && <div className="hint">🤖 clearing a path…</div>}
     </div>

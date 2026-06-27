@@ -1,33 +1,25 @@
-import { motion } from 'framer-motion';
 import { levelInfo, useApp } from '../store/store';
 
 export function PointsBadge() {
   const points = useApp((s) => s.points);
   const info = levelInfo(points);
   return (
-    <motion.div
-      className="flex items-center gap-3 bg-dark-surface border border-dark-border rounded-xl p-2 pr-4 shadow-sm"
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      key={info.level}
-    >
-      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-secondary to-brand-primary flex items-center justify-center shadow-inner">
-        <span className="font-display font-black text-white text-lg">{info.level}</span>
+    <div className="hidden sm:flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 border border-line rounded-xl bg-card">
+      <div
+        className="w-[30px] h-[30px] rounded-[9px] grid place-items-center text-white font-bold text-[13px]"
+        style={{ background: 'linear-gradient(135deg,#F59E0B,#FB923C)' }}
+      >
+        {info.level}
       </div>
-      <div className="flex flex-col flex-1">
-        <div className="flex items-center justify-between gap-4 mb-1">
-          <span className="text-sm font-bold text-white tracking-wide">{info.title}</span>
-          <span className="text-xs font-mono text-brand-secondary">★ {points.toLocaleString()}</span>
-        </div>
-        <div className="w-full h-1.5 bg-dark-bg rounded-full overflow-hidden">
-          <motion.div 
-            className="h-full bg-gradient-to-r from-neon-blue to-neon-purple rounded-full" 
-            initial={{ width: 0 }}
-            animate={{ width: `${info.pct}%` }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-          />
+      <div className="leading-tight">
+        <div className="text-[13px] font-bold">{info.title}</div>
+        <div className="flex items-center gap-1.5">
+          <span className="block w-[54px] h-[5px] rounded bg-line overflow-hidden">
+            <span className="block h-full rounded" style={{ width: `${info.pct}%`, background: 'linear-gradient(90deg,#FF5A3C,#FB7E50)' }} />
+          </span>
+          <span className="text-[11px] text-ink-faint font-bold">{points.toLocaleString()}</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

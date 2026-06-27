@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 // Same sliding-block engine as Traffic Jam, themed as wooden blocks, scored by speed.
 import {
   EXIT_ROW,
@@ -24,6 +26,7 @@ function UnblockMeSolo({ seed, isBot, difficulty, paused, onProgress, onScore, o
   const [vehicles, setVehicles] = useState<Vehicle[]>(() => puzzle.vehicles.map((v) => ({ ...v })));
   const [sel, setSel] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
+  const undoer = useUndo<{ vehicles: Vehicle[]; moves: number }>();
   const start = useRef(Date.now());
   const done = useRef(false);
   const botStep = useRef(0);
@@ -75,8 +78,19 @@ function UnblockMeSolo({ seed, isBot, difficulty, paused, onProgress, onScore, o
       else if (r < v.r) delta = -Math.min(v.r - r, neg);
     }
     if (delta !== 0) {
+      undoer.record({ vehicles, moves });
       setVehicles((cur) => moveVehicle(cur, idx, delta));
       setMoves((m) => m + 1);
+    }
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setVehicles(prev.vehicles);
+      setMoves(prev.moves);
+      setSel(null);
     }
   };
 
@@ -110,6 +124,11 @@ function UnblockMeSolo({ seed, isBot, difficulty, paused, onProgress, onScore, o
           </div>
         ))}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Slide the wooden blocks to free the 🔑 block out the right!</div>}
     </div>
   );

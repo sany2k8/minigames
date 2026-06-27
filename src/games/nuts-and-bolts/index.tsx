@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 // Reuse the proven tube-sort mechanic; bolts == tubes, nuts == colored units.
 import {
   TUBE_COLORS,
@@ -28,6 +30,7 @@ function NutsBoltsSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: 
   const [bolts, setBolts] = useState<Tube[]>(() => generate(rng, cfg));
   const [sel, setSel] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
+  const undoer = useUndo<{ bolts: Tube[]; moves: number }>();
   const start = useRef(Date.now());
   const done = useRef(false);
 
@@ -65,10 +68,21 @@ function NutsBoltsSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: 
       return;
     }
     if (canPour(bolts, sel, i, cfg.height)) {
+      undoer.record({ bolts, moves });
       setBolts((cur) => pour(cur, sel, i, cfg.height));
       setMoves((x) => x + 1);
     }
     setSel(null);
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setBolts(prev.bolts);
+      setMoves(prev.moves);
+      setSel(null);
+    }
   };
 
   return (
@@ -91,6 +105,11 @@ function NutsBoltsSolo({ seed, isBot, difficulty, paused, onProgress, onDone }: 
           </div>
         ))}
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && <div className="hint">Tap a bolt, then tap another to move nuts</div>}
     </div>
   );

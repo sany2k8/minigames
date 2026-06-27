@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { UndoButton } from '../UndoButton';
 import { generate, isSolved, mazeConfig, type Maze } from './logic';
 import '../games.css';
 
@@ -51,6 +52,11 @@ function MazePaintSolo({ seed, player, isBot, difficulty, paused, onProgress, on
     const [tr, tc] = [Math.floor(target / maze.w), target % maze.w];
     if (Math.abs(hr - tr) + Math.abs(hc - tc) !== 1) return; // must be adjacent
     setPath((p) => [...p, target]);
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    setPath((p) => (p.length > 1 ? p.slice(0, -1) : p));
   };
 
   const cx = (i: number) => (i % maze.w) + 0.5;
@@ -109,6 +115,11 @@ function MazePaintSolo({ seed, player, isBot, difficulty, paused, onProgress, on
           <circle cx={cx(head)} cy={cy(head)} r="0.34" fill="#fff" opacity="0.95" />
         </svg>
       </div>
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={path.length > 1} />
+        </div>
+      )}
       {!isBot && <div className="hint">Drag from the dot to paint every tile in one continuous stroke</div>}
     </div>
   );

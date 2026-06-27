@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import {
   type Card,
   type Deal,
@@ -25,6 +27,7 @@ function BlackHoleSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
   const start = useRef<Deal>(deal(rng)).current;
   const [piles, setPiles] = useState<Card[][]>(() => start.piles.map((p) => p.slice()));
   const [hole, setHole] = useState<Card>(start.hole);
+  const undoer = useUndo<{ piles: Card[][]; hole: Card }>();
   const startedAt = useRef(Date.now());
   const done = useRef(false);
   const botPlan = useRef<number[] | null>(null);
@@ -56,15 +59,16 @@ function BlackHoleSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
     setPiles((ps) => ps.map((p, j) => (j === pileIdx ? p.slice(0, -1) : p)));
   };
 
-  // Human finishes when no legal move remains.
+  // Human finishes when no legal move remains — unless they can still Undo a
+  // bad jump to recover (the whole point of the Undo button).
   useEffect(() => {
     if (isBot || done.current || paused) return;
-    if (stuck && !isCleared(piles)) {
+    if (stuck && !isCleared(piles) && !undoer.canUndo) {
       done.current = true;
       onDone({ solved: false, score: played * SCORE_PER_CARD, timeMs: Date.now() - startedAt.current });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stuck, isBot, paused]);
+  }, [stuck, isBot, paused, undoer.canUndo]);
 
   // Bot replays a precomputed heuristic plan onto its own deal.
   useEffect(() => {
@@ -92,7 +96,19 @@ function BlackHoleSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
 
   const tapPile = (i: number) => {
     if (isBot || paused || done.current) return;
+    const top = piles[i][piles[i].length - 1];
+    if (!top || !adjacent(top.rank, hole.rank)) return;
+    undoer.record({ piles, hole });
     play(i);
+  };
+
+  const undo = () => {
+    if (isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setPiles(prev.piles);
+      setHole(prev.hole);
+    }
   };
 
   const renderCard = (c: Card, faded = false) => (
@@ -138,6 +154,11 @@ function BlackHoleSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
         })}
       </div>
 
+      {!isBot && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot && (
         <div className="hint">
           {stuck && !isCleared(piles)

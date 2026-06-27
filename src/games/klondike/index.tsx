@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { useUndo } from '../../engine/useUndo';
+import { UndoButton } from '../UndoButton';
 import { HowToPlay } from '../HowToPlay';
 import { KlondikeIcon } from '../icons';
 import {
@@ -35,6 +37,7 @@ function KlondikeSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Solo
   const [st, setSt] = useState<KlondikeState>(() => deal(rng));
   const [sel, setSel] = useState<Sel>(null);
   const [ready, setReady] = useState(isBot);
+  const undoer = useUndo<KlondikeState>();
   const start = useRef(Date.now());
   const done = useRef(false);
   const noProg = useRef(0);
@@ -74,8 +77,18 @@ function KlondikeSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Solo
   const human = ready && !isBot && !paused && !done.current;
   const apply = (m: Move) => {
     if (!canApply(st, m)) return false;
+    undoer.record(st);
     setSt((s) => applyMove(s, m));
     return true;
+  };
+
+  const undo = () => {
+    if (!ready || isBot || paused || done.current) return;
+    const prev = undoer.undo();
+    if (prev) {
+      setSel(null);
+      setSt(prev);
+    }
   };
 
   const tapStock = () => {
@@ -171,6 +184,11 @@ function KlondikeSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Solo
         ))}
       </div>
 
+      {!isBot && ready && (
+        <div className="board-actions">
+          <UndoButton onUndo={undo} canUndo={undoer.canUndo} />
+        </div>
+      )}
       {!isBot ? (
         <div className="hint">
           {isWon(st)

@@ -10,6 +10,7 @@ import type {
   Difficulty
 } from './types';
 import { buildPlayers } from './match';
+import { resolveSimulOutcome } from './simul';
 import { randomSeed } from './rng';
 import { useOrientation } from './useOrientation';
 import { useApp, winPoints } from '../store/store';
@@ -198,45 +199,14 @@ function SimulHost({
     return () => clearTimeout(t);
   }, [count]);
 
-  const settleByScore = () => {
-    settled.current = true;
-    if (players.length === 1) {
-      const r = results.current[players[0].seat];
-      onResult(
-        r.solved
-          ? { title: mode === 'race' ? 'Solved!' : 'Round complete', subtitle: `Score ${r.score}`, emoji: '🎉', score: r.score, humanWon: true }
-          : { title: 'Game Over', subtitle: `Score ${r.score}`, emoji: '💥', score: r.score }
-      );
-      return;
-    }
-    const ranked = players
-      .map((p) => ({ p, s: results.current[p.seat]?.score ?? 0 }))
-      .sort((a, b) => b.s - a.s);
-    const draw = ranked[0].s === ranked[1].s;
-    onResult({
-      title: draw ? "It's a draw" : `${ranked[0].p.name} wins!`,
-      subtitle: players.map((p) => `${p.name}: ${results.current[p.seat]?.score ?? 0}`).join('   ·   '),
-      emoji: '🏆',
-      humanWon: !draw && ranked[0].p.kind === 'human'
-    });
-  };
-
   const finish = (seat: number, r: SoloResult) => {
     if (settled.current) return;
     results.current[seat] = r;
-    if (players.length === 1) {
-      settleByScore();
-      return;
-    }
-    // race: first to fully solve wins immediately
-    if (mode === 'race' && r.solved) {
+    const outcome = resolveSimulOutcome(mode, players, results.current, seat);
+    if (outcome) {
       settled.current = true;
-      const w = players.find((p) => p.seat === seat)!;
-      onResult({ title: `${w.name} wins!`, subtitle: 'First to finish!', emoji: '🏆', humanWon: w.kind === 'human' });
-      return;
+      onResult(outcome);
     }
-    // otherwise settle once everyone is done, by score
-    if (players.every((p) => results.current[p.seat])) settleByScore();
   };
 
   const isDuo = players.length === 2 && players.every((p) => p.kind === 'human');
