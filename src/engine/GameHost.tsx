@@ -16,6 +16,7 @@ import { useOrientation } from './useOrientation';
 import { useApp, winPoints } from '../store/store';
 import { confettiBurst } from '../lib/confetti';
 import { winBuzz } from '../lib/haptics';
+import { recordPlay } from '../lib/cloud';
 import { ProgressBar, ResultModal, TopBar } from '../components/ui';
 import '../components/components.css';
 
@@ -61,8 +62,8 @@ export function GameHost({
   const onResult = (r: ResultData) => {
     if (r.score != null) recordScore(def.id, r.score);
     if (r.outcome) recordResult(def.id, r.outcome);
+    const pts = r.humanWon ? winPoints(difficulty) : 0;
     if (r.humanWon) {
-      const pts = winPoints(difficulty);
       awardWin(pts);
       setEarned(pts);
       winBuzz();
@@ -71,6 +72,14 @@ export function GameHost({
       setEarned(0);
     }
     setResult(r);
+    // Best-effort cloud mirror — no-op offline / when Supabase isn't configured.
+    void recordPlay({
+      gameId: def.id,
+      outcome: r.outcome,
+      score: r.score ?? undefined,
+      difficulty,
+      points: pts
+    });
   };
 
   const rematch = () => {
