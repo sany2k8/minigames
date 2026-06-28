@@ -52,7 +52,7 @@ export function GamePage() {
   const fav = isFavorite(def.id);
 
   return (
-    <div className="flex flex-col min-h-full pb-28 md:pb-0">
+    <div className="flex flex-col min-h-full pb-28 overflow-y-auto">
       {/* Header */}
       <div className="h-16 shrink-0 flex items-center justify-between px-4 md:px-8 border-b border-line bg-card/85 backdrop-blur-md sticky top-0 z-20">
         <button onClick={() => nav(-1)} aria-label="Back" className="w-10 h-10 rounded-full grid place-items-center text-ink-soft hover:bg-line-soft transition-colors">
