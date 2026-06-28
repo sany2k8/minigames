@@ -222,11 +222,18 @@ body,
   border: 1px solid var(--hairline-strong);
 }
 
-/* Always-visible themed scrollbar. Giving ::-webkit-scrollbar an explicit
-   width overrides macOS overlay (auto-hiding) scrollbars so it stays on screen. */
 * {
   scrollbar-width: thin;
   scrollbar-color: #DFD5C8 #F4EFE8;
+}
+
+/* Prevent layout shift when vertical scrollbars appear/disappear on scrollable elements */
+html,
+body,
+main,
+.page,
+.overflow-y-auto {
+  scrollbar-gutter: stable;
 }
 ::-webkit-scrollbar {
   width: 11px;
