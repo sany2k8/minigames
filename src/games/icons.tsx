@@ -682,6 +682,124 @@ export const KlondikeIcon = () => (
   </Wrap>
 );
 
+export const LightsOutIcon = () => (
+  <Wrap>
+    {[0, 1, 2].map((r) =>
+      [0, 1, 2].map((c) => {
+        const on = (r + c) % 2 === 0;
+        return (
+          <rect key={`${r}-${c}`} x={20 + c * 22} y={20 + r * 22} width="18" height="18" rx="4"
+            fill={on ? '#ffd166' : '#2a3346'} />
+        );
+      })
+    )}
+  </Wrap>
+);
+
+export const Fib2048Icon = () => (
+  <Wrap>
+    <rect x="14" y="14" width="32" height="32" rx="6" fill="#f2b179" />
+    <text x="30" y="37" fontSize="16" fontWeight="900" fill="#fff" textAnchor="middle">2</text>
+    <rect x="52" y="14" width="32" height="32" rx="6" fill="#f59563" />
+    <text x="68" y="37" fontSize="16" fontWeight="900" fill="#fff" textAnchor="middle">3</text>
+    <rect x="33" y="52" width="34" height="34" rx="6" fill="#7c5cff" />
+    <text x="50" y="76" fontSize="16" fontWeight="900" fill="#fff" textAnchor="middle">5</text>
+  </Wrap>
+);
+
+export const SokobanIcon = () => (
+  <Wrap>
+    <rect x="14" y="14" width="72" height="72" rx="8" fill="#10151d" />
+    <rect x="22" y="58" width="20" height="20" rx="3" fill="#caa46a" stroke="#7a5f33" strokeWidth="3" />
+    <rect x="58" y="22" width="20" height="20" rx="4" fill="none" stroke="#51e08a" strokeWidth="3" strokeDasharray="4 3" />
+    <circle cx="36" cy="34" r="9" fill="#00f0ff" />
+  </Wrap>
+);
+
+export const BirdSortIcon = () => (
+  <Wrap>
+    <rect x="16" y="64" width="30" height="7" rx="3" fill="#5c4329" />
+    <rect x="54" y="64" width="30" height="7" rx="3" fill="#5c4329" />
+    <ellipse cx="31" cy="50" rx="15" ry="13" fill="#ff5d73" />
+    <ellipse cx="69" cy="50" rx="15" ry="13" fill="#00b4d8" />
+    <circle cx="26" cy="46" r="2.5" fill="#10151d" />
+    <circle cx="64" cy="46" r="2.5" fill="#10151d" />
+    <path d="M16 50 l-8 4 8 4 z" fill="#ffb703" />
+    <path d="M54 50 l-8 4 8 4 z" fill="#ffb703" />
+  </Wrap>
+);
+
+export const ConnectFourIcon = () => (
+  <Wrap>
+    <rect x="14" y="16" width="72" height="68" rx="10" fill="#15347e" />
+    {[0, 1, 2].map((r) =>
+      [0, 1, 2].map((c) => {
+        const fill = r === 2 && c === 0 ? '#ffd166' : r === 2 && c === 1 ? '#ff4b89' : c === 2 && r === 1 ? '#ffd166' : '#0c1322';
+        return <circle key={`${r}-${c}`} cx={28 + c * 22} cy={32 + r * 20} r="8" fill={fill} />;
+      })
+    )}
+  </Wrap>
+);
+
+export const SnakeIcon = () => (
+  <Wrap>
+    <rect x="14" y="14" width="72" height="72" rx="10" fill="#10241a" />
+    <path d="M28 30 h26 a8 8 0 0 1 8 8 v10 a8 8 0 0 1-8 8 H34" fill="none" stroke="#51e08a" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="30" cy="30" r="6" fill="#51e08a" />
+    <circle cx="32" cy="29" r="1.6" fill="#04121a" />
+    <circle cx="70" cy="66" r="5" fill="#ff5d73" />
+  </Wrap>
+);
+
+export const WordLinkIcon = () => (
+  <Wrap>
+    <circle cx="50" cy="50" r="34" fill="#1b2440" />
+    {['W', 'O', 'R', 'D'].map((ch, i) => {
+      const a = (i / 4) * Math.PI * 2 - Math.PI / 2;
+      const x = 50 + Math.cos(a) * 22;
+      const y = 50 + Math.sin(a) * 22;
+      return <text key={ch} x={x} y={y + 6} fontSize="16" fontWeight="900" fill="#ffd166" textAnchor="middle">{ch}</text>;
+    })}
+    <circle cx="50" cy="50" r="5" fill="#00f0ff" />
+  </Wrap>
+);
+
+export const PyramidSolitaireIcon = () => (
+  <Wrap>
+    {[0, 1, 2].map((r) =>
+      Array.from({ length: r + 1 }).map((_, c) => (
+        <rect key={`${r}-${c}`} x={50 - (r + 1) * 11 + c * 22} y={22 + r * 18} width="18" height="24" rx="3"
+          fill="#f4f1e8" stroke="#c9c4b4" strokeWidth="1.5" />
+      ))
+    )}
+    <text x="50" y="82" fontSize="16" fontWeight="900" fill="#fff" textAnchor="middle">13</text>
+  </Wrap>
+);
+
+export const DominoesIcon = () => (
+  <Wrap>
+    <rect x="20" y="30" width="60" height="30" rx="6" fill="#f4f1e8" stroke="#c9c4b4" strokeWidth="2" transform="rotate(-8 50 45)" />
+    <line x1="50" y1="26" x2="50" y2="64" stroke="#11151f" strokeWidth="2" transform="rotate(-8 50 45)" />
+    <circle cx="35" cy="40" r="3" fill="#11151f" transform="rotate(-8 50 45)" />
+    <circle cx="35" cy="50" r="3" fill="#11151f" transform="rotate(-8 50 45)" />
+    <circle cx="64" cy="38" r="3" fill="#d23b3b" transform="rotate(-8 50 45)" />
+    <circle cx="64" cy="45" r="3" fill="#d23b3b" transform="rotate(-8 50 45)" />
+    <circle cx="64" cy="52" r="3" fill="#d23b3b" transform="rotate(-8 50 45)" />
+  </Wrap>
+);
+
+export const SlidingPuzzleIcon = () => (
+  <Wrap>
+    <rect x="16" y="16" width="68" height="68" rx="10" fill="#1a2336" />
+    {[['1', 22, 30], ['2', 44, 30], ['3', 66, 30], ['4', 22, 52], ['5', 44, 52], ['7', 22, 74], ['8', 44, 74]].map(([t, x, y]) => (
+      <g key={`${x}-${y}`}>
+        <rect x={(x as number) - 9} y={(y as number) - 13} width="18" height="18" rx="4" fill="#3a6df0" />
+        <text x={x as number} y={(y as number) + 1} fontSize="12" fontWeight="900" fill="#fff" textAnchor="middle">{t}</text>
+      </g>
+    ))}
+  </Wrap>
+);
+
 export const ICONS: Record<string, ComponentType> = {
   'color-cards': ColorCardsIcon,
   'water-sort': WaterSortIcon,
@@ -737,5 +855,15 @@ export const ICONS: Record<string, ComponentType> = {
   'chess': ChessIcon,
   'flappy-bird': FlappyBirdIcon,
   'hangman': HangmanIcon,
-  'klondike': KlondikeIcon
+  'klondike': KlondikeIcon,
+  'lights-out': LightsOutIcon,
+  'fib-2048': Fib2048Icon,
+  'sokoban': SokobanIcon,
+  'bird-sort': BirdSortIcon,
+  'connect-four': ConnectFourIcon,
+  'snake': SnakeIcon,
+  'word-link': WordLinkIcon,
+  'pyramid-solitaire': PyramidSolitaireIcon,
+  'dominoes': DominoesIcon,
+  'sliding-puzzle': SlidingPuzzleIcon
 };

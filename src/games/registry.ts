@@ -643,6 +643,119 @@ export const GAMES: GameDefinition[] = [
     accent2: '#51e08a',
     load: () => import('./klondike').then((m) => m.default),
     featured: true
+  },
+  {
+    id: 'lights-out',
+    title: 'Lights Out',
+    category: 'puzzle',
+    contest: 'race',
+    blurb: 'Tap a light to flip it and its neighbours. Switch the whole grid off before the bot does.',
+    icon: ICONS['lights-out'],
+    accent: '#1a2336',
+    accent2: '#ffd166',
+    load: () => import('./lights-out').then((m) => m.default)
+  },
+  {
+    id: 'fib-2048',
+    title: '2048 Fibonacci',
+    category: 'puzzle',
+    contest: 'score',
+    blurb: 'Like 2048, but merge consecutive Fibonacci numbers — 1+1=2, 2+3=5, 5+8=13. Chase the high tile.',
+    icon: ICONS['fib-2048'],
+    accent: '#6c4ad6',
+    accent2: '#f59563',
+    load: () => import('./fib-2048').then((m) => m.default),
+    featured: true
+  },
+  {
+    id: 'sokoban',
+    title: 'Sokoban',
+    category: 'puzzle',
+    contest: 'race',
+    blurb: 'Push every crate onto a target tile — but don’t wedge one in a corner. First to tidy up wins.',
+    icon: ICONS['sokoban'],
+    accent: '#10151d',
+    accent2: '#caa46a',
+    load: () => import('./sokoban').then((m) => m.default)
+  },
+  {
+    id: 'bird-sort',
+    title: 'Bird Sort',
+    category: 'sort',
+    contest: 'score',
+    blurb: 'Move the birds between branches until each branch holds a single colourful flock 🐦',
+    icon: ICONS['bird-sort'],
+    accent: '#1d3a2c',
+    accent2: '#ff5d73',
+    load: () => import('./bird-sort').then((m) => m.default)
+  },
+  {
+    id: 'connect-four',
+    title: 'Connect Four',
+    category: 'board',
+    contest: 'table',
+    blurb: 'Drop your discs and be the first to line up four — across, down, or diagonally. Vs a friend or bot.',
+    icon: ICONS['connect-four'],
+    accent: '#15347e',
+    accent2: '#ffd166',
+    load: () => import('./connect-four').then((m) => m.default),
+    featured: true
+  },
+  {
+    id: 'snake',
+    title: 'Classic Snake',
+    category: 'arcade',
+    contest: 'score',
+    blurb: 'Guide the snake to eat food and grow — just don’t hit the walls or your own tail.',
+    icon: ICONS['snake'],
+    accent: '#10241a',
+    accent2: '#51e08a',
+    load: () => import('./snake').then((m) => m.default)
+  },
+  {
+    id: 'word-link',
+    title: 'Word Link',
+    category: 'word',
+    contest: 'score',
+    blurb: 'Tap the letter wheel to spell words. Find every hidden word before the bot does.',
+    icon: ICONS['word-link'],
+    accent: '#1b2440',
+    accent2: '#ffd166',
+    load: () => import('./word-link').then((m) => m.default)
+  },
+  {
+    id: 'pyramid-solitaire',
+    title: 'Pyramid Solitaire',
+    category: 'card',
+    contest: 'score',
+    blurb: 'Pair exposed cards that add up to 13 (Kings clear alone) to dismantle the whole pyramid.',
+    icon: ICONS['pyramid-solitaire'],
+    accent: '#2b3a66',
+    accent2: '#e0b35c',
+    load: () => import('./pyramid-solitaire').then((m) => m.default)
+  },
+  {
+    id: 'dominoes',
+    title: 'Dominoes',
+    category: 'board',
+    contest: 'table',
+    blurb: 'Match the open ends and be first to empty your hand. Play a friend or the bot.',
+    icon: ICONS['dominoes'],
+    accent: '#3a3327',
+    accent2: '#f4f1e8',
+    load: () => import('./dominoes').then((m) => m.default),
+    featured: true
+  },
+  {
+    id: 'sliding-puzzle',
+    title: 'Sliding Puzzle',
+    category: 'puzzle',
+    contest: 'race',
+    blurb: 'Slide the numbered tiles into order using the single empty space. First to solve it wins.',
+    icon: ICONS['sliding-puzzle'],
+    accent: '#1a2336',
+    accent2: '#5b8cff',
+    load: () => import('./sliding-puzzle').then((m) => m.default)
   }
 ];
 

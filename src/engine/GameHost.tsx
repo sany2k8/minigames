@@ -25,6 +25,7 @@ interface ResultData {
   emoji: string;
   score?: number; // for solo high-score recording
   humanWon?: boolean; // a human (not a bot) won — triggers rewards + confetti
+  outcome?: 'win' | 'loss' | 'draw'; // for per-game statistics
 }
 
 export function GameHost({
@@ -37,7 +38,7 @@ export function GameHost({
   difficulty: Difficulty;
 }) {
   const nav = useNavigate();
-  const { p1Name, p2Name, recordScore, markPlayed, awardWin } = useApp();
+  const { p1Name, p2Name, recordScore, recordResult, markPlayed, awardWin } = useApp();
   const [mod, setMod] = useState<GameModule | null>(null);
   const [seed, setSeed] = useState(randomSeed());
   const [result, setResult] = useState<ResultData | null>(null);
@@ -59,6 +60,7 @@ export function GameHost({
 
   const onResult = (r: ResultData) => {
     if (r.score != null) recordScore(def.id, r.score);
+    if (r.outcome) recordResult(def.id, r.outcome);
     if (r.humanWon) {
       const pts = winPoints(difficulty);
       awardWin(pts);
@@ -147,7 +149,7 @@ function TableHost({
                 players={players}
                 onGameOver={(winnerSeat) => {
                   if (winnerSeat < 0) {
-                    onResult({ title: "It's a draw", subtitle: 'Evenly matched!', emoji: '🤝' });
+                    onResult({ title: "It's a draw", subtitle: 'Evenly matched!', emoji: '🤝', outcome: 'draw' });
                     return;
                   }
                   const w = players.find((p) => p.seat === winnerSeat)!;
@@ -155,7 +157,8 @@ function TableHost({
                     title: `${w.name} wins!`,
                     subtitle: w.kind === 'bot' ? 'The bot takes this one.' : 'Nicely played!',
                     emoji: '🏆',
-                    humanWon: w.kind === 'human'
+                    humanWon: w.kind === 'human',
+                    outcome: w.kind === 'human' ? 'win' : 'loss'
                   });
                 }}
               />

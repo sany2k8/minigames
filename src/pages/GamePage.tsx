@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getGame } from '../games/registry';
 import { GameHost } from '../engine/GameHost';
+import { StatsModal } from '../components/StatsModal';
 import { CATEGORY_LABELS, type Difficulty, type PlayMode } from '../engine/types';
 import { useApp } from '../store/store';
 
@@ -21,6 +22,7 @@ export function GamePage() {
   const { difficulty, setDifficulty, isFavorite, toggleFavorite, p1Name, p2Name, setNames } = useApp();
   const [mode, setMode] = useState<PlayMode>('bot');
   const [playing, setPlaying] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     setPlaying(false);
@@ -56,7 +58,15 @@ export function GamePage() {
         <button onClick={() => nav(-1)} aria-label="Back" className="w-10 h-10 rounded-full grid place-items-center text-ink-soft hover:bg-line-soft transition-colors">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <h1 className="text-lg md:text-xl font-bold truncate max-w-[200px] md:max-w-md absolute left-1/2 -translate-x-1/2">{def.title}</h1>
+        <h1 className="text-lg md:text-xl font-bold truncate max-w-[160px] md:max-w-md absolute left-1/2 -translate-x-1/2">{def.title}</h1>
+        <div className="flex items-center gap-2">
+        <button
+          onClick={() => setShowStats(true)}
+          aria-label="Statistics"
+          className="w-9 h-9 rounded-full grid place-items-center border border-line bg-card text-ink-soft hover:text-ink hover:bg-line-soft transition-colors"
+        >
+          <span className="material-symbols-outlined text-xl">leaderboard</span>
+        </button>
         <button
           onClick={() => toggleFavorite(def.id)}
           aria-pressed={fav}
@@ -68,7 +78,10 @@ export function GamePage() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill={fav ? '#F43F5E' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" /></svg>
           <span className="hidden sm:inline">{fav ? 'Saved' : 'Favorite'}</span>
         </button>
+        </div>
       </div>
+
+      <StatsModal gameId={def.id} title={def.title} open={showStats} onClose={() => setShowStats(false)} />
 
       <div className="flex-1 p-4 md:p-8 max-w-4xl mx-auto w-full space-y-7">
         {/* Hero */}

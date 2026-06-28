@@ -111,13 +111,6 @@ export function NavigationShell() {
             <span className="text-base font-bold tracking-tight">Miniplay</span>
           </div>
 
-          <NavLink to="/games" className="relative flex-1 max-w-[440px] hidden sm:block">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint text-xl">search</span>
-            <div className="w-full h-10 rounded-[11px] border border-line bg-app-bg pl-10 pr-4 flex items-center text-[14px] text-ink-faint">
-              Search games, categories…
-            </div>
-          </NavLink>
-
           <div className="flex-1" />
 
           <PointsBadge />

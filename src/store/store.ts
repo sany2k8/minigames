@@ -37,9 +37,25 @@ export function winPoints(difficulty: Difficulty): number {
   return difficulty === 'hard' ? 120 : difficulty === 'medium' ? 80 : 50;
 }
 
+export type Outcome = 'win' | 'loss' | 'draw';
+export interface GameStats {
+  wins: number;
+  draws: number;
+  losses: number;
+  streak: number; // current win streak
+  best: number; // best win streak
+}
+export const emptyStats = (): GameStats => ({ wins: 0, draws: 0, losses: 0, streak: 0, best: 0 });
+export const statsFor = (s: AppState, id: string): GameStats => s.stats[id] ?? emptyStats();
+export const winPct = (st: GameStats): number => {
+  const total = st.wins + st.draws + st.losses;
+  return total === 0 ? 0 : Math.round((st.wins / total) * 100);
+};
+
 interface AppState {
   favorites: string[];
   highScores: Record<string, number>;
+  stats: Record<string, GameStats>;
   recent: string[];
   difficulty: Difficulty;
   sound: boolean;
@@ -55,6 +71,7 @@ interface AppState {
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
   recordScore: (id: string, score: number) => void;
+  recordResult: (id: string, outcome: Outcome) => void;
   markPlayed: (id: string) => void;
   setDifficulty: (d: Difficulty) => void;
   setSound: (on: boolean) => void;
@@ -69,6 +86,7 @@ export const useApp = create<AppState>()(
     (set, get) => ({
       favorites: [],
       highScores: {},
+      stats: {},
       recent: [],
       difficulty: 'medium',
       sound: true,
@@ -90,6 +108,19 @@ export const useApp = create<AppState>()(
         set((s) => ({
           highScores: { ...s.highScores, [id]: Math.max(score, s.highScores[id] ?? 0) }
         })),
+      recordResult: (id, outcome) =>
+        set((s) => {
+          const cur = s.stats[id] ?? emptyStats();
+          const next: GameStats = {
+            wins: cur.wins + (outcome === 'win' ? 1 : 0),
+            draws: cur.draws + (outcome === 'draw' ? 1 : 0),
+            losses: cur.losses + (outcome === 'loss' ? 1 : 0),
+            streak: outcome === 'win' ? cur.streak + 1 : 0,
+            best: cur.best
+          };
+          next.best = Math.max(cur.best, next.streak);
+          return { stats: { ...s.stats, [id]: next } };
+        }),
       markPlayed: (id) =>
         set((s) => ({
           recent: [id, ...s.recent.filter((r) => r !== id)].slice(0, 12),
@@ -102,6 +133,7 @@ export const useApp = create<AppState>()(
       awardWin: (amount) => set((s) => ({ points: s.points + amount, gamesWon: s.gamesWon + 1 })),
       resetProgress: () => set({
         highScores: {},
+        stats: {},
         points: 0,
         gamesWon: 0,
         gamesPlayed: 0,

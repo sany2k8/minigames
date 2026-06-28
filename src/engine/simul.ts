@@ -14,6 +14,7 @@ export interface Outcome {
   emoji: string;
   score?: number; // solo high-score recording
   humanWon?: boolean; // a human (not a bot) won — triggers rewards + confetti
+  outcome: 'win' | 'loss' | 'draw'; // from the human's perspective, for stats
 }
 
 /**
@@ -44,13 +45,14 @@ export function resolveSimulOutcome(
   // 1. Solo
   if (players.length === 1) {
     return r.solved
-      ? { title: mode === 'race' ? 'Solved!' : 'Round complete', subtitle: `Score ${r.score}`, emoji: '🎉', score: r.score, humanWon: true }
-      : { title: 'Game Over', subtitle: `Score ${r.score}`, emoji: '💥', score: r.score };
+      ? { title: mode === 'race' ? 'Solved!' : 'Round complete', subtitle: `Score ${r.score}`, emoji: '🎉', score: r.score, humanWon: true, outcome: 'win' }
+      : { title: 'Game Over', subtitle: `Score ${r.score}`, emoji: '💥', score: r.score, outcome: 'loss' };
   }
 
   // 2. Race: first to fully solve wins
   if (mode === 'race' && r.solved) {
-    return { title: `${me.name} wins!`, subtitle: 'First to finish!', emoji: '🏆', humanWon: me.kind === 'human' };
+    const won = me.kind === 'human';
+    return { title: `${me.name} wins!`, subtitle: 'First to finish!', emoji: '🏆', humanWon: won, outcome: won ? 'win' : 'loss' };
   }
 
   // 3. Human out before the opponent finished → still-standing opponent wins now
@@ -58,7 +60,8 @@ export function resolveSimulOutcome(
     const standing = players.filter((p) => p.seat !== justFinished && !results[p.seat]);
     if (standing.length > 0) {
       const w = standing[0];
-      return { title: `${w.name} wins!`, subtitle: `${me.name} is out`, emoji: '🏆', humanWon: w.kind === 'human' };
+      const won = w.kind === 'human';
+      return { title: `${w.name} wins!`, subtitle: `${me.name} is out`, emoji: '🏆', humanWon: won, outcome: won ? 'win' : 'loss' };
     }
   }
 
@@ -68,11 +71,13 @@ export function resolveSimulOutcome(
       .map((p) => ({ p, s: results[p.seat]?.score ?? 0 }))
       .sort((a, b) => b.s - a.s);
     const draw = ranked[0].s === ranked[1].s;
+    const won = !draw && ranked[0].p.kind === 'human';
     return {
       title: draw ? "It's a draw" : `${ranked[0].p.name} wins!`,
       subtitle: players.map((p) => `${p.name}: ${results[p.seat]?.score ?? 0}`).join('   ·   '),
       emoji: '🏆',
-      humanWon: !draw && ranked[0].p.kind === 'human'
+      humanWon: won,
+      outcome: draw ? 'draw' : won ? 'win' : 'loss'
     };
   }
 
