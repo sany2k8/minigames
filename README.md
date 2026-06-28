@@ -1,4 +1,4 @@
-# No WiFi Games 🎮✈️
+# No WiFi Games
 
 ![Game Screenshot](game_view.png)
 
