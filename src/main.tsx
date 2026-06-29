@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { App } from './app/App';
 import { initGlobalHaptics, setHapticsEnabled } from './lib/haptics';
 import { levelInfo, useApp } from './store/store';
-import { ensureSession, syncProfile, isCloudEnabled } from './lib/cloud';
+import { syncProfile, setFavorite, isCloudEnabled } from './lib/cloud';
 import './lib/pwa'; // registers the beforeinstallprompt listener early
 import './theme/global.css';
 
@@ -26,9 +26,9 @@ initGlobalHaptics();
 setHapticsEnabled(useApp.getState().haptics);
 useApp.subscribe((s) => setHapticsEnabled(s.haptics));
 
-// Cloud sync (no-op unless Supabase is configured). Establish the anonymous
-// session, push the current profile snapshot, then keep it in sync — debounced
-// — whenever the reward totals or display name change.
+// Cloud sync (no-op unless Supabase is configured and a user is signed in).
+// The initial back-fill on login lives in <AuthBridge>; here we keep the cloud
+// in step with later changes — reward totals (debounced) and favorites (live).
 if (isCloudEnabled) {
   const snapshot = () => {
     const s = useApp.getState();
@@ -48,9 +48,8 @@ if (isCloudEnabled) {
     timer = setTimeout(() => void syncProfile(snapshot()), 1500);
   };
 
-  ensureSession().then((uid) => {
-    if (uid) void syncProfile(snapshot());
-  });
+  // Initial sign-in + first sync are handled by <AuthBridge>; here we just keep
+  // the cloud profile in step with later reward changes (no-op until authed).
   useApp.subscribe((s, prev) => {
     if (
       s.points !== prev.points ||
@@ -59,6 +58,16 @@ if (isCloudEnabled) {
       s.p1Name !== prev.p1Name
     ) {
       pushSoon();
+    }
+
+    // Favorites: mirror each add/remove to the cloud as it happens.
+    if (s.favorites !== prev.favorites) {
+      s.favorites
+        .filter((id) => !prev.favorites.includes(id))
+        .forEach((id) => void setFavorite(id, true));
+      prev.favorites
+        .filter((id) => !s.favorites.includes(id))
+        .forEach((id) => void setFavorite(id, false));
     }
   });
 }

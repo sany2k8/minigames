@@ -8,6 +8,7 @@ import { Favorites } from '../pages/Favorites';
 import { Leaderboards } from '../pages/Leaderboards';
 import { Profile } from '../pages/Profile';
 import { NavigationShell } from '../components/NavigationShell';
+import { AuthProvider } from '../lib/auth';
 import { Analytics } from '@vercel/analytics/react';
 
 function Page({ children }: { children: ReactNode }) {
@@ -53,9 +54,11 @@ function AnimatedRoutes() {
 
 export function App() {
   return (
-    <HashRouter>
-      <AnimatedRoutes />
-      <Analytics />
-    </HashRouter>
+    <AuthProvider>
+      <HashRouter>
+        <AnimatedRoutes />
+        <Analytics />
+      </HashRouter>
+    </AuthProvider>
   );
 }

@@ -6,8 +6,9 @@
  *    offline. Nothing here ever throws into the UI; failures are swallowed and
  *    logged in dev only. Local state (the zustand store) stays the source of
  *    truth — the cloud is best-effort mirroring on top.
- *  - Auth is anonymous: each device/browser becomes one anonymous player. We
- *    sign in lazily on the first successful sync.
+ *  - Identity is the signed-in Supabase user (supabase-js attaches the session
+ *    to each request). Writes only run while a user is signed in; `auth.tsx`
+ *    flips the authed flag via `setCloudAuthed`.
  */
 import { supabase, isCloudEnabled } from './supabase';
 import type { Difficulty } from '../engine/types';
@@ -15,35 +16,22 @@ import type { Outcome } from '../store/store';
 import type { GlobalLeaderboardRow, GameLeaderboardRow } from './database.types';
 
 const online = () => typeof navigator === 'undefined' || navigator.onLine;
-const active = (): boolean => isCloudEnabled && supabase !== null && online();
+const ready = (): boolean => isCloudEnabled && supabase !== null && online();
+
+let authed = false;
+/** Called by auth.tsx when the Supabase login state changes. */
+export function setCloudAuthed(value: boolean): void {
+  authed = value;
+}
 
 function warn(scope: string, err: unknown) {
   if (import.meta.env.DEV) console.warn(`[cloud] ${scope} failed:`, err);
 }
 
-let sessionPromise: Promise<string | null> | null = null;
-
-/** Ensure an (anonymous) session exists; returns the user id, or null. */
-export async function ensureSession(): Promise<string | null> {
-  if (!active()) return null;
-  if (sessionPromise) return sessionPromise;
-
-  sessionPromise = (async () => {
-    try {
-      const { data } = await supabase!.auth.getSession();
-      if (data.session?.user) return data.session.user.id;
-
-      const { data: signed, error } = await supabase!.auth.signInAnonymously();
-      if (error) throw error;
-      return signed.user?.id ?? null;
-    } catch (err) {
-      warn('ensureSession', err);
-      sessionPromise = null; // allow a later retry
-      return null;
-    }
-  })();
-
-  return sessionPromise;
+/** Current user id from the locally cached session (no network round-trip). */
+async function uid(): Promise<string | null> {
+  const { data } = await supabase!.auth.getSession();
+  return data.session?.user?.id ?? null;
 }
 
 export interface PlayPayload {
@@ -56,10 +44,7 @@ export interface PlayPayload {
 
 /** Mirror one finished game to the cloud (best score + W/L/D history). */
 export async function recordPlay(p: PlayPayload): Promise<void> {
-  if (!active()) return;
-  const uid = await ensureSession();
-  if (!uid) return;
-
+  if (!ready() || !authed) return;
   try {
     const tasks: PromiseLike<unknown>[] = [];
     if (typeof p.score === 'number') {
@@ -97,12 +82,51 @@ export interface ProfileSnapshot {
   gamesPlayed: number;
 }
 
+/** Add or remove one favorite for the signed-in user. */
+export async function setFavorite(gameId: string, on: boolean): Promise<void> {
+  if (!ready() || !authed) return;
+  try {
+    const id = await uid();
+    if (!id) return;
+    if (on) {
+      await supabase!.from('favorites').upsert({ user_id: id, game_id: gameId });
+    } else {
+      await supabase!.from('favorites').delete().eq('user_id', id).eq('game_id', gameId);
+    }
+  } catch (err) {
+    warn('setFavorite', err);
+  }
+}
+
+/** Bulk-push the user's whole favorites set (used on login to back-fill). */
+export async function pushFavorites(gameIds: string[]): Promise<void> {
+  if (!ready() || !authed || gameIds.length === 0) return;
+  try {
+    const id = await uid();
+    if (!id) return;
+    await supabase!.from('favorites').upsert(gameIds.map((game_id) => ({ user_id: id, game_id })));
+  } catch (err) {
+    warn('pushFavorites', err);
+  }
+}
+
+/** Bulk-push local high scores (used on login to back-fill the scores table). */
+export async function pushHighScores(scores: Record<string, number>): Promise<void> {
+  if (!ready() || !authed) return;
+  try {
+    await Promise.all(
+      Object.entries(scores).map(([gameId, score]) =>
+        supabase!.rpc('submit_score', { p_game_id: gameId, p_score: Math.round(score), p_difficulty: null })
+      )
+    );
+  } catch (err) {
+    warn('pushHighScores', err);
+  }
+}
+
 /** Push the aggregate profile snapshot (debounced by the caller). */
 export async function syncProfile(s: ProfileSnapshot): Promise<void> {
-  if (!active()) return;
-  const uid = await ensureSession();
-  if (!uid) return;
-
+  if (!ready() || !authed) return;
   try {
     await supabase!.rpc('sync_profile', {
       p_display_name: s.displayName,
@@ -117,9 +141,9 @@ export async function syncProfile(s: ProfileSnapshot): Promise<void> {
   }
 }
 
-/** Top players by points. Returns [] when offline/disabled. */
+/** Top players by points. Public read — works for guests too. Returns []. */
 export async function fetchGlobalLeaderboard(limit = 50): Promise<GlobalLeaderboardRow[]> {
-  if (!active()) return [];
+  if (!ready()) return [];
   try {
     const { data, error } = await supabase!
       .from('global_leaderboard')
@@ -134,9 +158,9 @@ export async function fetchGlobalLeaderboard(limit = 50): Promise<GlobalLeaderbo
   }
 }
 
-/** Top scores for one game. Returns [] when offline/disabled. */
+/** Top scores for one game. Public read. Returns []. */
 export async function fetchGameLeaderboard(gameId: string, limit = 50): Promise<GameLeaderboardRow[]> {
-  if (!active()) return [];
+  if (!ready()) return [];
   try {
     const { data, error } = await supabase!
       .from('game_leaderboard')

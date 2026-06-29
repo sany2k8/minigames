@@ -5,6 +5,11 @@ import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
 
 export default defineConfig({
+  server: {
+    // Honor the port assigned by the tooling (preview harness sets PORT);
+    // fall back to Vite's default for plain `npm run dev`.
+    port: process.env.PORT ? Number(process.env.PORT) : 5173
+  },
   plugins: [
     react(),
     VitePWA({

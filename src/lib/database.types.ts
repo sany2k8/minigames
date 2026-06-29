@@ -27,6 +27,12 @@ export interface GameRow {
   created_at: string;
 }
 
+export interface FavoriteRow {
+  user_id: string;
+  game_id: string;
+  created_at: string;
+}
+
 export interface ScoreRow {
   id: string;
   user_id: string;

@@ -1,9 +1,13 @@
 /**
- * Supabase browser client.
+ * Supabase browser client — the single source for both data and auth.
  *
- * This is a fully offline-first PWA — the cloud is OPTIONAL. If the Vite env
+ * This is a fully offline-first PWA, so the cloud is OPTIONAL. If the Vite env
  * vars are missing (the default), `supabase` is `null` and every cloud helper
  * in `cloud.ts` quietly no-ops, so the offline app behaves exactly as before.
+ *
+ * Auth is Supabase's own email/password (see `auth.tsx`); supabase-js persists
+ * the session and attaches it to every request automatically, so RLS sees the
+ * logged-in user via `auth.uid()`.
  *
  * Only the publishable/anon key is ever read here — never service-role or
  * Postgres secrets, which would leak if bundled into client code.
@@ -23,7 +27,6 @@ export const supabase: SupabaseClient | null = isCloudEnabled
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        // Each device is one anonymous player; no email/OAuth redirect flow.
         detectSessionInUrl: false
       }
     })

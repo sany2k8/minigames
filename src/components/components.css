@@ -417,3 +417,25 @@
   background: linear-gradient(135deg, #ffe08a, var(--warn));
   box-shadow: 0 6px 18px rgba(255, 209, 102, 0.4);
 }
+
+/* ===================== Auth modal input ===================== */
+.auth-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--line, #e7e0d6);
+  background: var(--card, #fff);
+  color: var(--ink, #1c1a17);
+  font-size: 14.5px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.auth-input::placeholder {
+  color: var(--ink-faint, #a89e92);
+  font-weight: 500;
+}
+.auth-input:focus {
+  border-color: var(--coral, #ff5a3c);
+  box-shadow: 0 0 0 3px rgba(255, 90, 60, 0.15);
+}
