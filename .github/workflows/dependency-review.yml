@@ -1,0 +1,31 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Dependency Review
+#
+# Scans pull requests for newly added dependencies with known CVEs or
+# restrictive licenses. Powered by GitHub's dependency graph.
+# ──────────────────────────────────────────────────────────────────────────────
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    name: Scan Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
