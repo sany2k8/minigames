@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { GAMES, getGame } from '../games/registry';
 import { GameTile } from '../components/GameTile';
+import { AuthModal } from '../components/AuthModal';
+import { useAuth } from '../lib/auth';
 import { levelInfo, useApp } from '../store/store';
 
 interface Stats { gamesWon: number; played: number; favs: number; points: number }
@@ -28,6 +30,7 @@ export function Profile() {
 
   return (
     <div className="p-5 md:p-10 max-w-[1100px] mx-auto w-full animate-fade-in">
+      <AccountCard />
       <div className="flex items-center gap-5 card p-6 mb-5">
         <div className="w-[88px] h-[88px] rounded-[24px] grid place-items-center text-white font-bold text-[32px] shadow-[0_10px_24px_rgba(255,90,60,0.32)]" style={{ background: 'linear-gradient(135deg,#FF5A3C,#FB7E50)' }}>
           {p1Name.slice(0, 2).toUpperCase()}
@@ -81,6 +84,42 @@ export function Profile() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/** Account / sign-in card. Hidden entirely when Supabase isn't configured. */
+function AccountCard() {
+  const { enabled, loading, user, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  if (!enabled) return null;
+
+  const signedIn = Boolean(user);
+
+  return (
+    <div className="card p-5 mb-5 flex items-center gap-4">
+      <div className="w-11 h-11 rounded-[13px] grid place-items-center shrink-0 text-white" style={{ background: signedIn ? 'linear-gradient(135deg,#1F9D72,#34D399)' : 'linear-gradient(135deg,#94A3B8,#CBD5E1)' }}>
+        <span className="material-symbols-outlined">{signedIn ? 'cloud_done' : 'cloud_off'}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-[15px]">
+          {loading ? 'Checking account…' : signedIn ? 'Signed in' : 'Playing as guest'}
+        </div>
+        <div className="text-[13px] text-ink-faint truncate">
+          {signedIn
+            ? user!.email
+            : 'Sign in to sync scores across devices and join the global leaderboard.'}
+        </div>
+      </div>
+      {!loading &&
+        (signedIn ? (
+          <button onClick={() => void signOut()} className="btn-soft shrink-0">Sign out</button>
+        ) : (
+          <button onClick={() => setOpen(true)} className="btn-coral shrink-0">Sign in</button>
+        ))}
+
+      <AuthModal open={open} onClose={() => setOpen(false)} />
     </div>
   );
 }
