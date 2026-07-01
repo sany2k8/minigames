@@ -51,7 +51,9 @@ export function ResultModal({
   emoji = '🏆',
   points = 0,
   onRematch,
-  onHome
+  onHome,
+  onShare,
+  shareLabel = 'Challenge a friend'
 }: {
   title: string;
   subtitle?: string;
@@ -59,6 +61,9 @@ export function ResultModal({
   points?: number;
   onRematch: () => void;
   onHome: () => void;
+  /** When provided, shows a "Challenge a friend" button. */
+  onShare?: () => void;
+  shareLabel?: string;
 }) {
   return (
     <motion.div
@@ -102,6 +107,15 @@ export function ResultModal({
             Rematch
           </button>
         </div>
+        {onShare && (
+          <button
+            className="mt-3 w-full py-3 rounded-xl border border-dark-border text-gray-200 hover:bg-dark-surface-hover transition-colors flex items-center justify-center gap-2 font-bold"
+            onClick={onShare}
+          >
+            <span className="material-symbols-outlined text-xl">ios_share</span>
+            {shareLabel}
+          </button>
+        )}
       </motion.div>
     </motion.div>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng } from '../../engine/rng';
+import { sound } from '../../lib/sound';
 import { TARGET, THROW_ANGLE, collides, normalize, speedFor, thresholdFor } from './logic';
 import '../games.css';
 
@@ -31,12 +32,14 @@ function KnifeHitSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Solo
     const rel = normalize(THROW_ANGLE - rotRef.current);
     if (collides(knivesRef.current, rel, threshold)) {
       setHitFlash(true);
+      sound.error();
       setTimeout(() => finish(false), 350);
       return;
     }
     const next = [...knivesRef.current, rel];
     knivesRef.current = next;
     setKnives(next);
+    sound.hit();
     onScore?.(next.length * 100);
     // speed up each "stage" of a few knives
     speedRef.current = speedFor(rng, Math.floor(next.length / 3), difficulty);

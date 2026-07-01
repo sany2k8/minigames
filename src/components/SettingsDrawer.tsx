@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { levelInfo, useApp } from '../store/store';
 import type { Difficulty } from '../engine/types';
+import { enableDailyReminder, notificationsSupported } from '../lib/notify';
 
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -55,8 +56,12 @@ export function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () =
     setNames,
     sound,
     setSound,
+    music,
+    setMusic,
     haptics,
     setHaptics,
+    dailyReminder,
+    setDailyReminder,
     difficulty,
     setDifficulty,
     points,
@@ -166,9 +171,27 @@ export function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () =
                 <Row label="Sound effects" desc="In-game audio cues">
                   <Toggle on={sound} onChange={setSound} />
                 </Row>
+                <Row label="Background music" desc="Gentle chiptune loop during play">
+                  <Toggle on={music} onChange={setMusic} />
+                </Row>
                 <Row label="Haptic vibration" desc="Tap feedback on supported devices">
                   <Toggle on={haptics} onChange={setHaptics} />
                 </Row>
+                {notificationsSupported() && (
+                  <Row label="Daily reminder" desc="A nudge to keep your daily streak alive">
+                    <Toggle
+                      on={dailyReminder}
+                      onChange={async (v) => {
+                        if (v) {
+                          const ok = await enableDailyReminder();
+                          setDailyReminder(ok);
+                        } else {
+                          setDailyReminder(false);
+                        }
+                      }}
+                    />
+                  </Row>
+                )}
               </Card>
 
               <Card icon="shield" title="Privacy & Data">

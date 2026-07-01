@@ -4,10 +4,15 @@ import type { ReactNode } from 'react';
 import { Home } from '../pages/Home';
 import { Library } from '../pages/Library';
 import { GamePage } from '../pages/GamePage';
+import { DailyPage } from '../pages/DailyPage';
+import { VsPage } from '../pages/VsPage';
+import { Tournament } from '../pages/Tournament';
 import { Favorites } from '../pages/Favorites';
 import { Leaderboards } from '../pages/Leaderboards';
 import { Profile } from '../pages/Profile';
+import { Shop } from '../pages/Shop';
 import { NavigationShell } from '../components/NavigationShell';
+import { AchievementToast } from '../components/AchievementToast';
 import { AuthProvider } from '../lib/auth';
 import { Analytics } from '@vercel/analytics/react';
 
@@ -41,10 +46,14 @@ function AnimatedRoutes() {
           <Route path="/favorites" element={<Page><Favorites /></Page>} />
           <Route path="/leaderboards" element={<Page><Leaderboards /></Page>} />
           <Route path="/profile" element={<Page><Profile /></Page>} />
+          <Route path="/shop" element={<Page><Shop /></Page>} />
         </Route>
         
         {/* Pages outside Navigation Shell (Full Screen) */}
         <Route path="/game/:id" element={<Page><GamePage /></Page>} />
+        <Route path="/daily" element={<Page><DailyPage /></Page>} />
+        <Route path="/vs/:code" element={<Page><VsPage /></Page>} />
+        <Route path="/tournament" element={<Page><Tournament /></Page>} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -57,6 +66,7 @@ export function App() {
     <AuthProvider>
       <HashRouter>
         <AnimatedRoutes />
+        <AchievementToast />
         <Analytics />
       </HashRouter>
     </AuthProvider>

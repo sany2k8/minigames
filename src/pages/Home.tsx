@@ -4,6 +4,9 @@ import { GAMES, getGame } from '../games/registry';
 import { GameTile } from '../components/GameTile';
 import { CATEGORY_LABELS, type Category } from '../engine/types';
 import { useApp } from '../store/store';
+import { todayChallenge } from '../lib/daily';
+import { currentSeason } from '../lib/seasons';
+import { QuestsCard } from '../components/QuestsCard';
 
 const CONTEST_LABEL: Record<string, string> = { race: 'RACE', score: 'SCORE', table: '2-4P' };
 const CAT_GLYPH: Record<Category, string> = {
@@ -16,6 +19,13 @@ export function Home() {
   const favorites = useApp((s) => s.favorites);
   const toggleFavorite = useApp((s) => s.toggleFavorite);
   const p1Name = useApp((s) => s.p1Name);
+  const dailyStreak = useApp((s) => s.dailyStreak);
+  const lastDailyKey = useApp((s) => s.lastDailyKey);
+
+  const daily = useMemo(() => todayChallenge(), []);
+  const dailyGame = getGame(daily.gameId);
+  const dailyDone = lastDailyKey === daily.key;
+  const season = useMemo(() => currentSeason(), []);
 
   const featured = useMemo(() => {
     const f = GAMES.filter((g) => g.featured);
@@ -51,8 +61,25 @@ export function Home() {
     <div className="p-5 md:p-10 max-w-[1180px] mx-auto w-full animate-fade-in">
       <div className="mb-6">
         <div className="text-[13px] font-bold text-ink-soft tracking-wide">{greeting}, {p1Name}</div>
-        <h1 className="mt-1 text-[30px] font-bold tracking-tight">Ready to play?</h1>
+        <h1 className="mt-1 text-[30px] font-bold tracking-tight">Ready to play? {season && <span>{season.emoji}</span>}</h1>
       </div>
+
+      {/* Seasonal event banner */}
+      {season && (
+        <div
+          className="mb-5 rounded-2xl px-5 py-4 flex items-center gap-4 text-white shadow-[0_12px_28px_rgba(20,20,40,0.16)]"
+          style={{ background: `linear-gradient(120deg, ${season.accent}, ${season.accent2})` }}
+        >
+          <div className="text-4xl drop-shadow">{season.emoji}</div>
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white/20 text-[10.5px] font-bold tracking-[0.08em] mb-1">
+              LIMITED EVENT
+            </div>
+            <div className="font-bold text-[17px] leading-tight">{season.name}</div>
+            <div className="text-[13.5px] text-white/90">{season.tagline}</div>
+          </div>
+        </div>
+      )}
 
       {/* Hero carousel */}
       <div
@@ -99,6 +126,59 @@ export function Home() {
           ))}
         </div>
       </div>
+
+      {/* Daily Challenge */}
+      {dailyGame && (
+        <button
+          onClick={() => nav('/daily')}
+          className="mt-6 w-full text-left card p-5 flex items-center gap-4 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(20,20,40,0.10)] transition-all"
+        >
+          <div
+            className="w-14 h-14 shrink-0 rounded-2xl grid place-items-center text-white text-2xl shadow-sm"
+            style={{ background: `linear-gradient(135deg, ${dailyGame.accent}, ${dailyGame.accent2})` }}
+          >
+            🗓️
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-[15px]">Daily Challenge</span>
+              {dailyStreak > 0 && (
+                <span className="inline-flex items-center gap-1 text-[12px] font-bold text-coral-ink bg-coral-soft px-2 py-0.5 rounded-full">
+                  🔥 {dailyStreak}
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-ink-faint truncate">
+              {dailyDone ? 'Done today — come back tomorrow!' : `Today: ${dailyGame.title}`}
+            </div>
+          </div>
+          <span
+            className={`shrink-0 inline-flex items-center gap-1 px-4 py-2 rounded-full font-bold text-sm ${
+              dailyDone ? 'bg-line-soft text-ink-soft' : 'btn-coral'
+            }`}
+          >
+            {dailyDone ? '✓ Done' : 'Play'}
+          </span>
+        </button>
+      )}
+
+      {/* Weekly quests */}
+      <QuestsCard />
+
+      {/* Tournament */}
+      <button
+        onClick={() => nav('/tournament')}
+        className="mt-4 w-full text-left card p-5 flex items-center gap-4 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(20,20,40,0.10)] transition-all"
+      >
+        <div className="w-14 h-14 shrink-0 rounded-2xl grid place-items-center text-white text-2xl shadow-sm" style={{ background: 'linear-gradient(135deg,#F59E0B,#FB923C)' }}>
+          🏆
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-bold text-[15px]">Tournament</div>
+          <div className="text-sm text-ink-faint truncate">Best-of-5 gauntlet vs the bot — win to bank a bonus.</div>
+        </div>
+        <span className="shrink-0 btn-coral px-4 py-2 text-sm">Enter</span>
+      </button>
 
       {/* Jump back in */}
       {recentGames.length > 0 && (

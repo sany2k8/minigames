@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng } from '../../engine/rng';
+import { sound } from '../../lib/sound';
 import { DURATION_MS, HOLES, type Spawn, botReaction, schedule } from './logic';
 import '../games.css';
 
@@ -84,6 +85,8 @@ function WhackAMoleSolo({ seed, isBot, difficulty, paused, onScore, onDone }: So
     const a = holes[h];
     if (!a || consumed.current.has(a.idx)) return;
     consumed.current.add(a.idx);
+    if (a.type === 'mole') sound.pop();
+    else sound.error();
     setScore((sc) => {
       const ns = sc + (a.type === 'mole' ? 10 : -15);
       scoreRef.current = ns;

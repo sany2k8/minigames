@@ -43,3 +43,16 @@ export const botTickMs: Record<'easy' | 'medium' | 'hard', number> = {
   medium: 1500,
   hard: 800
 };
+
+/**
+ * Head start (ms) the human gets in a race/score match before the bot is
+ * allowed to make its first move. Short puzzles were ending almost instantly
+ * because the bot started solving the moment the countdown cleared, before the
+ * player could even read the on-board hint. The grace scales with difficulty:
+ * Easy gives the most breathing room, Hard the least.
+ */
+export const botHeadStartMs: Record<'easy' | 'medium' | 'hard', number> = {
+  easy: 4500,
+  medium: 3000,
+  hard: 1500
+};

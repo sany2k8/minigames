@@ -57,6 +57,12 @@ export interface SoloGameProps {
  */
 export interface TableGameProps {
   players: PlayerInfo[];
+  /**
+   * True while the match is paused (pause overlay) or the start countdown is
+   * still running. Real-time table games must freeze their loop/bot while set;
+   * turn-based games can ignore it (the overlay already blocks input).
+   */
+  paused?: boolean;
   onGameOver: (winnerSeat: Seat) => void;
 }
 

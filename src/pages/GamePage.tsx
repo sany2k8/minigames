@@ -5,6 +5,7 @@ import { GameHost } from '../engine/GameHost';
 import { StatsModal } from '../components/StatsModal';
 import { CATEGORY_LABELS, type Difficulty, type PlayMode } from '../engine/types';
 import { useApp } from '../store/store';
+import { adaptiveDifficulty, START_RATING } from '../lib/adaptive';
 
 const MODE_LABEL: Record<PlayMode, { title: string; sub: string; emoji: string }> = {
   solo: { title: '1 Player', sub: 'Solo / practice', emoji: '🧍' },
@@ -19,7 +20,7 @@ export function GamePage() {
   const { id } = useParams();
   const nav = useNavigate();
   const def = id ? getGame(id) : undefined;
-  const { difficulty, setDifficulty, isFavorite, toggleFavorite, p1Name, p2Name, setNames } = useApp();
+  const { difficulty, setDifficulty, isFavorite, toggleFavorite, p1Name, p2Name, setNames, adaptive, setAdaptive, botRating, adjustBotRating } = useApp();
   const [mode, setMode] = useState<PlayMode>('bot');
   const [playing, setPlaying] = useState(false);
   const [showStats, setShowStats] = useState(false);
@@ -40,10 +41,23 @@ export function GamePage() {
     );
   }
 
+  // With adaptive on, a vs-bot match uses the per-game fairness rating instead
+  // of the manual pick, and each result nudges the bot toward an even fight.
+  const useAdaptive = adaptive && mode === 'bot';
+  const effectiveDifficulty = useAdaptive ? adaptiveDifficulty(botRating[def.id] ?? START_RATING) : difficulty;
+
   if (playing) {
     return (
       <div className="flex flex-col h-dvh bg-dark-bg text-gray-100">
-        <GameHost key={def.id} def={def} mode={mode} difficulty={difficulty} />
+        <GameHost
+          key={def.id}
+          def={def}
+          mode={mode}
+          difficulty={effectiveDifficulty}
+          onEnd={(r) => {
+            if (useAdaptive) adjustBotRating(def.id, Boolean(r.humanWon), r.outcome === 'draw');
+          }}
+        />
       </div>
     );
   }
@@ -127,23 +141,41 @@ export function GamePage() {
 
           {mode !== 'duo' && (
             <div>
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-coral">psychology</span>
-                Bot difficulty
-              </h3>
-              <div className="flex flex-wrap gap-2.5">
-                {DIFFS.map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setDifficulty(d)}
-                    className={`px-5 py-2.5 rounded-full font-bold border transition-colors ${
-                      difficulty === d ? 'bg-coral text-white border-coral' : 'bg-card border-line text-ink-soft hover:text-ink'
-                    }`}
-                  >
-                    {d[0].toUpperCase() + d.slice(1)}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <span className="material-symbols-outlined text-coral">psychology</span>
+                  Bot difficulty
+                </h3>
+                <button
+                  onClick={() => setAdaptive(!adaptive)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                    adaptive ? 'bg-coral-soft text-coral-ink border-coral/40' : 'bg-card border-line text-ink-soft hover:text-ink'
+                  }`}
+                >
+                  ⚖️ Adaptive {adaptive ? 'On' : 'Off'}
+                </button>
               </div>
+              {useAdaptive ? (
+                <div className="rounded-xl border border-line bg-line-soft p-4 text-sm text-ink-soft">
+                  Auto-adjusts to keep matches fair. Currently playing at{' '}
+                  <span className="font-bold text-ink capitalize">{effectiveDifficulty}</span>. Win and the bot gets tougher;
+                  lose and it eases off.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2.5">
+                  {DIFFS.map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setDifficulty(d)}
+                      className={`px-5 py-2.5 rounded-full font-bold border transition-colors ${
+                        difficulty === d ? 'bg-coral text-white border-coral' : 'bg-card border-line text-ink-soft hover:text-ink'
+                      }`}
+                    >
+                      {d[0].toUpperCase() + d.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

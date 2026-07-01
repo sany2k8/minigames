@@ -2,6 +2,7 @@
  * Decorative SVG tile art for each game. Pure presentational, no deps.
  * Each fills a 100x100 viewBox and is rendered inside a rounded gradient tile.
  */
+import { useId } from 'react';
 import type { ComponentType } from 'react';
 
 const Wrap = ({ children }: { children: React.ReactNode }) => (
@@ -19,17 +20,30 @@ export const ColorCardsIcon = () => (
   </Wrap>
 );
 
-export const WaterSortIcon = () => (
-  <Wrap>
-    {[18, 42, 66].map((x, i) => (
-      <g key={x}>
-        <rect x={x} y="20" width="16" height="60" rx="8" fill="rgba(255,255,255,0.12)" stroke="#fff" strokeWidth="2" />
-        <rect x={x} y={40 + i * 6} width="16" height={40 - i * 6} fill={['#41d3bd', '#ffd166', '#ff5d73'][i]} />
-        <rect x={x} y={56} width="16" height={24} fill={['#6c5cff', '#41a0ff', '#51e08a'][i]} />
-      </g>
-    ))}
-  </Wrap>
-);
+export const WaterSortIcon = () => {
+  const clipId = useId().replace(/:/g, '');
+  return (
+    <Wrap>
+      <defs>
+        {[18, 42, 66].map((x) => (
+          <clipPath key={x} id={`${clipId}-${x}`}>
+            <rect x={x} y="20" width="16" height="60" rx="8" />
+          </clipPath>
+        ))}
+      </defs>
+      {[18, 42, 66].map((x, i) => (
+        <g key={x}>
+          <rect x={x} y="20" width="16" height="60" rx="8" fill="rgba(255,255,255,0.12)" />
+          <g clipPath={`url(#${clipId}-${x})`}>
+            <rect x={x} y={40 + i * 6} width="16" height={40 - i * 6} fill={['#41d3bd', '#ffd166', '#ff5d73'][i]} />
+            <rect x={x} y={56} width="16" height={24} fill={['#6c5cff', '#41a0ff', '#51e08a'][i]} />
+          </g>
+          <rect x={x} y="20" width="16" height="60" rx="8" fill="none" stroke="#fff" strokeWidth="2" />
+        </g>
+      ))}
+    </Wrap>
+  );
+};
 
 export const ColorBlocksIcon = () => (
   <Wrap>
@@ -463,18 +477,31 @@ export const UnblockMeIcon = () => (
   </Wrap>
 );
 
-export const LiquidLabIcon = () => (
-  <Wrap>
-    {[26, 50, 74].map((x, i) => (
-      <g key={x}>
-        <rect x={x - 9} y="18" width="18" height="64" rx="9" fill="rgba(255,255,255,0.1)" stroke="#fff" strokeWidth="2" />
-        <rect x={x - 9} y={46} width="18" height="36" fill={['#41d3bd', '#ff5d73', '#ffd166'][i]} />
-        <rect x={x - 9} y={58} width="18" height="24" fill={['#8367ff', '#41a0ff', '#51e08a'][i]} />
-        <circle cx={x - 2} cy={40} r="2.5" fill="#fff" opacity="0.8" />
-      </g>
-    ))}
-  </Wrap>
-);
+export const LiquidLabIcon = () => {
+  const clipId = useId().replace(/:/g, '');
+  return (
+    <Wrap>
+      <defs>
+        {[26, 50, 74].map((x) => (
+          <clipPath key={x} id={`${clipId}-${x}`}>
+            <rect x={x - 9} y="18" width="18" height="64" rx="9" />
+          </clipPath>
+        ))}
+      </defs>
+      {[26, 50, 74].map((x, i) => (
+        <g key={x}>
+          <rect x={x - 9} y="18" width="18" height="64" rx="9" fill="rgba(255,255,255,0.1)" />
+          <g clipPath={`url(#${clipId}-${x})`}>
+            <rect x={x - 9} y={46} width="18" height="36" fill={['#41d3bd', '#ff5d73', '#ffd166'][i]} />
+            <rect x={x - 9} y={58} width="18" height="24" fill={['#8367ff', '#41a0ff', '#51e08a'][i]} />
+          </g>
+          <circle cx={x - 2} cy={40} r="2.5" fill="#fff" opacity="0.8" />
+          <rect x={x - 9} y="18" width="18" height="64" rx="9" fill="none" stroke="#fff" strokeWidth="2" />
+        </g>
+      ))}
+    </Wrap>
+  );
+};
 
 export const TileMatchIcon = () => (
   <Wrap>

@@ -2,6 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './app/App';
 import { initGlobalHaptics, setHapticsEnabled } from './lib/haptics';
+import { initGlobalSound, setSoundEnabled } from './lib/sound';
+import { setMusicEnabled } from './lib/music';
+import { applyTheme } from './lib/cosmetics';
+import { rescheduleDailyReminder } from './lib/notify';
 import { levelInfo, useApp } from './store/store';
 import { syncProfile, setFavorite, isCloudEnabled } from './lib/cloud';
 import './lib/pwa'; // registers the beforeinstallprompt listener early
@@ -25,6 +29,42 @@ if (import.meta.env.DEV && 'serviceWorker' in navigator) {
 initGlobalHaptics();
 setHapticsEnabled(useApp.getState().haptics);
 useApp.subscribe((s) => setHapticsEnabled(s.haptics));
+
+// Global tap sound, gated by the persisted setting.
+initGlobalSound();
+setSoundEnabled(useApp.getState().sound);
+useApp.subscribe((s) => setSoundEnabled(s.sound));
+
+// Background music gate (playback itself is started/stopped by GameHost).
+setMusicEnabled(useApp.getState().music);
+useApp.subscribe((s) => setMusicEnabled(s.music));
+
+// Re-arm the daily reminder on startup if the user has it enabled.
+rescheduleDailyReminder(useApp.getState().dailyReminder);
+
+// Equipped cosmetic theme: apply on load and whenever it changes.
+applyTheme(useApp.getState().theme);
+useApp.subscribe((s, prev) => {
+  if (s.theme !== prev.theme) applyTheme(s.theme);
+});
+
+// Achievements: silently backfill earned badges once, then unlock new ones as
+// progress changes (the toast UI drains `recentUnlocks`).
+useApp.getState().seedAchievements();
+useApp.subscribe((s, prev) => {
+  if (
+    s.points !== prev.points ||
+    s.gamesWon !== prev.gamesWon ||
+    s.gamesPlayed !== prev.gamesPlayed ||
+    s.stats !== prev.stats ||
+    s.highScores !== prev.highScores ||
+    s.favorites !== prev.favorites ||
+    s.dailyBest !== prev.dailyBest ||
+    s.dailyWins !== prev.dailyWins
+  ) {
+    useApp.getState().syncAchievements();
+  }
+});
 
 // Cloud sync (no-op unless Supabase is configured and a user is signed in).
 // The initial back-fill on login lives in <AuthBridge>; here we keep the cloud

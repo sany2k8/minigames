@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, TableGameProps } from '../../engine/types';
+import { sound } from '../../lib/sound';
 import { type Board, botMove, emptyBoard, winner } from './logic';
 import '../games.css';
 
@@ -16,6 +17,7 @@ function TicTacToeTable({ players, onGameOver }: TableGameProps) {
 
   const play = (i: number) => {
     if (over.current || board[i] !== -1 || result) return;
+    sound.place();
     setBoard((b) => {
       const nb = b.slice();
       nb[i] = turn as 0 | 1;

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng } from '../../engine/rng';
+import { sound } from '../../lib/sound';
 import { N, type Dir, type SnakeState, botDir, initState, step } from './logic';
 import '../games.css';
 
@@ -31,10 +32,14 @@ function SnakeSolo({ seed, player, isBot, difficulty, paused, onScore, onDone }:
       const ns = step(state.current, dir, rng);
       state.current = ns;
       if (ns.score !== score) {
+        if (!isBot) sound.coin();
         setScore(ns.score);
         onScore?.(ns.score);
       }
-      if (ns.dead) finish();
+      if (ns.dead) {
+        if (!isBot) sound.hit();
+        finish();
+      }
     }, SPEED[difficulty]);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps

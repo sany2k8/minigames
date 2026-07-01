@@ -248,6 +248,22 @@
 .seat-head .pbar {
   grid-column: 1 / -1;
 }
+.ghost-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+}
+.ghost-row > div {
+  flex: 1;
+}
+.ghost-tag {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
 .dot {
   width: 11px;
   height: 11px;

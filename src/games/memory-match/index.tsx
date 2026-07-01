@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, TableGameProps } from '../../engine/types';
 import { makeRng, randomSeed, botTickMs } from '../../engine/rng';
+import { sound } from '../../lib/sound';
 import { CARD_FACES, PAIRS, deal } from './logic';
 import '../games.css';
 
@@ -32,6 +33,7 @@ function MemoryTable({ players, onGameOver }: TableGameProps) {
   const pick = (i: number) => {
     if (locked || matched.has(i) || i === first) return;
     record(i);
+    sound.select();
     if (first === null) setFirst(i);
     else if (second === null) setSecond(i);
   };
@@ -46,6 +48,7 @@ function MemoryTable({ players, onGameOver }: TableGameProps) {
     const isMatch = cards[first] === cards[second];
     const t = setTimeout(() => {
       if (isMatch) {
+        sound.pop();
         setMatched((m) => new Set(m).add(first).add(second));
         setScores((s) => s.map((v, idx) => (idx === turn ? v + 1 : v)));
       }

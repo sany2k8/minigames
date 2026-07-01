@@ -105,6 +105,8 @@
   overflow: hidden;
   background: rgba(255, 255, 255, 0.04);
   position: relative;
+  isolation: isolate;
+  transform: translateZ(0);
   transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s;
   cursor: pointer;
 }
@@ -122,7 +124,7 @@
   pointer-events: none;
 }
 .ws-tube.sel {
-  transform: translateY(-14px);
+  transform: translateY(-14px) translateZ(0);
   border-color: #fff;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
 }

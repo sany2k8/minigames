@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, TableGameProps } from '../../engine/types';
 import { makeRng, botTickMs, randomSeed } from '../../engine/rng';
+import { sound } from '../../lib/sound';
 import { COLS, ROWS, type Board, type Cell, botMove, drop, emptyBoard, isFull, legalCols, smartChance, winner } from './logic';
 import '../games.css';
 
@@ -17,6 +18,7 @@ function ConnectFourTable({ players, onGameOver }: TableGameProps) {
     if (done.current) return;
     const res = drop(board, col, mark(turn));
     if (!res) return;
+    sound.drop();
     const w = winner(res.board);
     setBoard(res.board);
     if (w) {

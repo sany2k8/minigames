@@ -6,7 +6,7 @@ import '../games.css';
 
 const NEUTRAL = '#6f79b0';
 
-function TowerWarTable({ players, onGameOver }: TableGameProps) {
+function TowerWarTable({ players, paused, onGameOver }: TableGameProps) {
   const seats = players.slice(0, 2);
   const rng = useRef(makeRng(randomSeed())).current;
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -16,6 +16,8 @@ function TowerWarTable({ players, onGameOver }: TableGameProps) {
   const [, force] = useState(0);
   const [drag, setDrag] = useState<{ from: number; x: number; y: number } | null>(null);
   const over = useRef(false);
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
   const sendRef = useRef<(f: number, t: number, o: number) => void>(() => {});
 
   const color = (owner: number) => (owner < 0 ? NEUTRAL : seats[owner].color);
@@ -39,7 +41,7 @@ function TowerWarTable({ players, onGameOver }: TableGameProps) {
     const loop = (now: number) => {
       const dt = Math.min(60, now - last);
       last = now;
-      if (!over.current) {
+      if (!over.current && !pausedRef.current) {
         // growth
         growAcc += dt;
         if (growAcc > 650) {

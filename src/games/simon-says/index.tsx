@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng } from '../../engine/rng';
+import { sound } from '../../lib/sound';
 import { PADS, botMistakeChance, makeSequence } from './logic';
 import '../games.css';
 
@@ -27,7 +28,12 @@ function SimonSaysSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
     const timers: ReturnType<typeof setTimeout>[] = [];
     const step = 620;
     for (let i = 0; i < round; i++) {
-      timers.push(setTimeout(() => setActive(seq[i]), i * step));
+      timers.push(
+        setTimeout(() => {
+          setActive(seq[i]);
+          sound.pad(seq[i]);
+        }, i * step)
+      );
       timers.push(setTimeout(() => setActive(null), i * step + 380));
     }
     timers.push(
@@ -59,6 +65,7 @@ function SimonSaysSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
     setActive(pad);
     setTimeout(() => setActive(null), 160);
     if (pad === seq[inputIdx.current]) {
+      sound.pad(pad);
       inputIdx.current++;
       if (inputIdx.current === round) {
         onScore?.(round * 100);
@@ -66,6 +73,7 @@ function SimonSaysSolo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
         setPhase('show');
       }
     } else {
+      sound.error();
       finish(round - 1);
     }
   };

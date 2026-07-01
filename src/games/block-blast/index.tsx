@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { sound } from '../../lib/sound';
 // Reuse the proven block-placement engine; Block Blast is the score+combo cousin.
 import {
   BLOCK_COLORS,
@@ -51,6 +52,7 @@ function BlockBlastSolo({ seed, isBot, difficulty, paused, onScore, onDone }: So
       onScore?.(ns);
       return ns;
     });
+    if (!isBot) (res.cleared > 0 ? sound.clear() : sound.place());
     if (res.cleared > 0) {
       setFlash(true);
       setTimeout(() => setFlash(false), 220);

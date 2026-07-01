@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { botTickMs } from '../../engine/rng';
+import { sound } from '../../lib/sound';
 import { MAX_ROWS, type Mark, WORD_LEN, botGuess, evaluate, scoreFor, secretForSeed } from './logic';
 import { WORD_SET } from './words';
 import '../games.css';
@@ -27,6 +28,7 @@ function WordleSolo({ seed, isBot, difficulty, paused, onScore, onDone }: SoloGa
     if (done.current) return;
     if (word.length !== WORD_LEN || !WORD_SET.has(word)) {
       setShake(true);
+      if (!isBot) sound.error();
       setTimeout(() => setShake(false), 400);
       return;
     }
@@ -36,6 +38,7 @@ function WordleSolo({ seed, isBot, difficulty, paused, onScore, onDone }: SoloGa
     setInput('');
     if (word === secret) finish(true, next.length);
     else if (next.length >= MAX_ROWS) finish(false, next.length);
+    else if (!isBot) sound.pop();
   };
   const submitRef = useRef(submit);
   submitRef.current = submit;

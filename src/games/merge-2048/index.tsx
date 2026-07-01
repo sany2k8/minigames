@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameModule, SoloGameProps } from '../../engine/types';
 import { makeRng, botTickMs } from '../../engine/rng';
+import { sound } from '../../lib/sound';
 import { useUndo } from '../../engine/useUndo';
 import { UndoButton } from '../UndoButton';
 import { SIZE, type Dir, type Grid, botMove, canMove, emptyGrid, move, spawn, tileColor } from './logic';
@@ -27,6 +28,7 @@ function Merge2048Solo({ seed, isBot, difficulty, paused, onScore, onDone }: Sol
     setGrid((cur) => {
       const res = move(cur, dir);
       if (!res.moved) return cur;
+      if (!isBot) (res.gained > 0 ? sound.merge() : sound.move());
       const next = spawn(res.grid, rng);
       setScore((s) => {
         const ns = s + res.gained;
